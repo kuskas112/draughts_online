@@ -10,7 +10,7 @@ const app = express();
 const server = http.createServer(app);
 const io = socketIo(server);
 
-const host = '192.168.155.80';
+const host = 'localhost';
 const port = 7000;
 
 app.engine(

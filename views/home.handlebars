@@ -10,31 +10,139 @@
     </table>
     <table border="1" style="opacity: 0.5;">
         <tbody id="tbody2">
-            <!-- таблица для доски -->
+            <!-- таблица для доски напарника-->
         </tbody>
     </table>
 </main>
 
 <script>
+
+    const cells = [];
+    const cellsForAlly = [];
+
+    const checkers = [];
+    const checkersForAlly = [];
+
+    var selectedChecker = null;
+
+
+    class Cell{
+        constructor(tag, x, y, checker = null){
+            if (!this.inBounds(x, y)) throw new Error('invalid cell coordinates');
+            this.x = x;
+            this.y = y;
+            this.tag = tag;
+            this.checker = checker;
+
+            this.tag.addEventListener('click', (e) => {
+                if(selectedChecker == null) return;
+                if(selectedChecker.x == this.x && selectedChecker.y == this.y) return;
+
+                console.log(`selected field - ${this.x};${this.y}`);
+                
+                selectedChecker.removeHighLight();
+                selectedChecker.goTo(this.x, this.y);
+                this.checker = selectedChecker;
+                selectedChecker = null;
+            });
+        }
+
+        drawChecker(checker){
+            this.tag.appendChild(checker.tag);
+        }
+
+        removeChecker(checker){
+            this.tag.removeChild(checker.tag);
+        }
+
+        inBounds(x, y){
+            return x >= 0 && y >= 0 && x < 8 && y < 8;
+        }
+    }
+
+    class Checker {
+        constructor(tag, color, i, j){
+            tag.classList.add('checker');
+            if (color == 'black')      tag.classList.add('checker-black');
+            else if (color == 'white') tag.classList.add('checker-white');
+            else throw new Error("invalid color");
+            if (!this.inBounds(j, i)) throw new Error('invalid checker coordinates');
+            this.color = color;
+            this.tag = tag;
+            this.x = i;
+            this.y = j;
+            this.isQueen = false;
+
+            this.tag.addEventListener('click', (e) => {
+                if(selectedChecker != null) selectedChecker.removeHighLight();
+                selectedChecker = this;
+                console.log(`touched - ${this.x};${this.y}`);
+                this.highLightMe();
+            });
+        }
+
+        highLightMe(){
+            this.tag.style.opacity = '0.5';
+        }
+        removeHighLight(){
+            this.tag.style.opacity = '1';
+        }
+
+        // Лежит ли поле на одной диагонали с шашкой
+        checkFieldForMove(x, y){
+            return Math.abs(x - this.x) === Math.abs(y - this.y)// && (x + y) % 2 == 0;
+        }
+
+        inBounds(x, y){
+            return x >= 0 && y >= 0 && x < 8 && y < 8;
+        }
+
+        goTo(x, y){
+            if(!this.checkFieldForMove(x, y) || !this.inBounds(x, y)) return false;
+            let distance = Math.abs(x - this.x);
+            if (distance == 0) return false;
+            if (!this.isQueen && distance > 1) return false;
+            if (cells[y][x].checker != null) return false;
+
+            let oldCell = cells[this.y][this.x];
+            let newCell = cells[y][x];
+
+            oldCell.removeChecker(this);
+            newCell.drawChecker(this);
+
+            this.x = x;
+            this.y = y;
+            return true;
+        }
+    }
+
+
+
     function createGameField(numTable){
         const tbody = document.getElementById('tbody' + numTable);
         for(var i = 0; i < 8; i++){
             const row = document.createElement('tr');
+            cells.push([]);
             for(var j = 0; j < 8; j++){
                 var color = (j + i) % 2  == 0 ? 'white' : 'black';
                 var td = document.createElement('td');
                 td.style.backgroundColor = color;
-                td.style.position = 'relative';
 
+                var checker = null;
                 if(color == 'black' && i != 3 && i != 4){
-                    var shashka = document.createElement('div');
-                    shashka.classList.add('checker');
-                    if(i < 3) shashka.classList.add('checker-white');
-                    else if(i > 4) shashka.classList.add('checker-black');
+                    let shashka = document.createElement('div');
 
+                    // checker init
+                    var checkerColor = 'white'
+                    if(i > 4) checkerColor = 'black'
+                    checker = new Checker(shashka, checkerColor, j, i)
+
+                    //checker saving
+                    //if(numTable == 1) checkers.push(checker);
+                    //else checkersForAlly.push(checker);
                     td.appendChild(shashka);
                 }
-
+                cells[i].push(new Cell(td, j, i, checker));
                 row.appendChild(td);
             }
             tbody.appendChild(row);
@@ -42,7 +150,14 @@
     }
 
     createGameField(1);
-    createGameField(2);
+    //createGameField(2);
+
+    //let test = checkers[8];
+    //test.tag.style.backgroundColor = 'red';
+    //test.goTo(2, 3);
+
+    //console.log(test);
+    
 </script>
 
 <style>
@@ -52,6 +167,7 @@
         height: 26px;
         align-items: center;
         justify-content: center;
+        position: relative;
     }
 
     .checker{
