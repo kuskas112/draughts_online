@@ -1,0 +1,82 @@
+<header>
+    {{{header}}}
+</header>
+<script src="/socket.io/socket.io.js"></script>
+<main class="main">
+    <table border="1">
+        <tbody id="tbody1">
+            <!-- таблица для доски -->
+        </tbody>
+    </table>
+    <table border="1" style="opacity: 0.5;">
+        <tbody id="tbody2">
+            <!-- таблица для доски -->
+        </tbody>
+    </table>
+</main>
+
+<script>
+    function createGameField(numTable){
+        const tbody = document.getElementById('tbody' + numTable);
+        for(var i = 0; i < 8; i++){
+            const row = document.createElement('tr');
+            for(var j = 0; j < 8; j++){
+                var color = (j + i) % 2  == 0 ? 'white' : 'black';
+                var td = document.createElement('td');
+                td.style.backgroundColor = color;
+                td.style.position = 'relative';
+
+                if(color == 'black' && i != 3 && i != 4){
+                    var shashka = document.createElement('div');
+                    shashka.classList.add('checker');
+                    if(i < 3) shashka.classList.add('checker-white');
+                    else if(i > 4) shashka.classList.add('checker-black');
+
+                    td.appendChild(shashka);
+                }
+
+                row.appendChild(td);
+            }
+            tbody.appendChild(row);
+        }
+    }
+
+    createGameField(1);
+    createGameField(2);
+</script>
+
+<style>
+    td{
+        display: inline-flex;
+        width: 26px;
+        height: 26px;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .checker{
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background-color: red;
+    }
+
+    .main{
+        display: flex;
+    }
+
+    table{
+        margin-left: 40px;
+        margin-right: 40px;
+    }
+
+    .checker-white{
+        background-color: bisque;
+    }
+
+    .checker-black{
+        background-color: rgb(105, 98, 98);
+    }
+
+
+</style>

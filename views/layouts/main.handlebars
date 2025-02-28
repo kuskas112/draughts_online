@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1"
+        />
+        {{#if styles}}
+            {{#each styles}}
+                <link rel="stylesheet" href="{{this}}">
+            {{/each}}
+        {{/if}}
+        <link rel="stylesheet" href="/styles/mainstyles.css">
+        <title>OGU Clicker</title>
+    </head>
+    <body>
+        {{{body}}}
+    </body>
+</html>
