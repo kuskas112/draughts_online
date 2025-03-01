@@ -17,13 +17,12 @@
 
 <script>
 
-
-
     class PlayField{
         constructor(){
-            this.cells = [];             // поля игровой доски
-            this.currentMove = 'white';  // кто сейчас ходит
-            this.selectedChecker = null; // выбранная для хода шашка
+            this.cells = [];                    // поля игровой доски
+            this.currentMove = 'white';         // кто сейчас ходит
+            this.selectedChecker = null;        // выбранная для хода шашка
+            this.bottomCheckersColor = 'black'; // цвет шашек в нижней части, то есть каким цветом ходит игрок
         }
 
         endMove(){
@@ -45,8 +44,9 @@
                         let shashka = document.createElement('div');
 
                         // checker init
-                        var checkerColor = 'white'
-                        if(i > 4) checkerColor = 'black'
+
+                        var checkerColor = pf.bottomCheckersColor == 'black' ? 'white' : 'black';
+                        if(i > 4) checkerColor = pf.bottomCheckersColor == 'black' ? 'black' : 'white';
                         checker = new Checker(shashka, checkerColor, j, i, this);
 
                         td.appendChild(shashka);
@@ -76,7 +76,13 @@
                 console.log(`selected field - ${this.x};${this.y}`);
                 
                 this.pf.selectedChecker.removeHighLight();
-                if (this.pf.selectedChecker.goTo(this)){
+                try{
+                    this.pf.selectedChecker.goTo(this);
+                }
+                catch(e){
+                    console.error(e.message);
+                }
+                finally{
                     this.pf.selectedChecker = null;
                 }
             });
@@ -87,8 +93,8 @@
             this.checker = checker;
         }
 
-        removeChecker(checker){
-            this.tag.removeChild(checker.tag);
+        removeChecker(){
+            this.tag.removeChild(this.checker.tag);
             this.checker = null;
         }
 
@@ -141,27 +147,52 @@
             let y = cell.y;
             
             if(!this.checkFieldForMove(x, y) || !this.inBounds(x, y)) throw new Error('Not valid move');
-            let distance = Math.abs(x - this.x);
-            if (distance == 0) throw new Error('0 distance move');
-            if (!this.isQueen && distance > 1) throw new Error('Too far move for not-a-queen checker');
             if (pf.cells[y][x].checker != null) throw new Error('Theres already another checker');
             if (pf.cells[this.y][this.x].checker == null) throw new Error('Current cell is empty');
 
-            let oldCell = pf.cells[this.y][this.x];
+            let distance = this.y - y; // дистанция хода. Больше нуля - вверх, меньше - вниз
+            if (distance == 0) throw new Error('0 distance move');
+            if (!this.isQueen && distance > 2) throw new Error('Too far move for not-a-queen checker');
+            if (
+                (!this.isQueen && distance < 0 && this.color == pf.bottomCheckersColor) || 
+                (!this.isQueen && distance > 0 && this.color != pf.bottomCheckersColor) // проверка на ход назад
+            ) throw new Error('Cant go back if not a queen');
 
-            oldCell.removeChecker(this);
+            let oldCell = pf.cells[this.y][this.x];
+            if (Math.abs(distance) > 1){ // либо ходит дамка, либо кого то щас съедят, либо и то и то
+                let xSign = (x - this.x) / Math.abs(x - this.x) // получаем знаки для координатных осей
+                let ySign = (y - this.y) / Math.abs(y - this.y) 
+                let eatenCell = null; // клетка с шашкой, которую планируется съесть
+                for(let i = 1; i <= Math.abs(distance); i++){
+                    // одна из клеток на диагонали поедания
+                    let newX = this.x + i * xSign;
+                    let newY = this.y + i * ySign;
+
+                    let innerCell = pf.cells[newY][newX];
+                    if (innerCell.checker == null) continue;
+                    if (innerCell.checker.color == oldCell.checker.color) throw new Error('cant eat your checkers');
+                    if (eatenCell != null) throw new Error('cant eat more then 1 checker at a time');
+                    eatenCell = innerCell;
+                }
+                // если был ход на дистанцию 2, там не было что есть, а шашка не дамка
+                if (eatenCell == null && !this.isQueen) throw new Error('too far move for not-a-queen checker');
+                if(eatenCell){
+                    eatenCell.removeChecker(); // съедена
+                }
+            }
+
+            oldCell.removeChecker();
             cell.setChecker(this);
 
             this.x = x;
             this.y = y;
-            return true;
         }
     }
 
     const pf = new PlayField();
+    pf.bottomCheckersColor = 'white';
     pf.createGameField(1);
 
-    //createGameField(2);
     
 </script>
 
