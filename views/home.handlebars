@@ -17,42 +17,79 @@
 
 <script>
 
-    const cells = [];
-    const cellsForAlly = [];
 
-    const checkers = [];
-    const checkersForAlly = [];
 
-    var selectedChecker = null;
+    class PlayField{
+        constructor(){
+            this.cells = [];             // поля игровой доски
+            this.currentMove = 'white';  // кто сейчас ходит
+            this.selectedChecker = null; // выбранная для хода шашка
+        }
 
+        endMove(){
+            this.currentMove = this.currentMove == 'white' ? 'black' : 'white'; 
+        }
+
+        createGameField(numTable){
+            const tbody = document.getElementById('tbody' + numTable);
+            for(var i = 0; i < 8; i++){
+                const row = document.createElement('tr');
+                this.cells.push([]);
+                for(var j = 0; j < 8; j++){
+                    var color = (j + i) % 2  == 0 ? 'white' : 'black';
+                    var td = document.createElement('td');
+                    td.style.backgroundColor = color;
+
+                    var checker = null;
+                    if(color == 'black' && i != 3 && i != 4){
+                        let shashka = document.createElement('div');
+
+                        // checker init
+                        var checkerColor = 'white'
+                        if(i > 4) checkerColor = 'black'
+                        checker = new Checker(shashka, checkerColor, j, i, this);
+
+                        td.appendChild(shashka);
+                    }
+                    this.cells[i].push(new Cell(td, j, i, this, checker));
+                    row.appendChild(td);
+                }
+                tbody.appendChild(row);
+            }
+        }
+
+    }
 
     class Cell{
-        constructor(tag, x, y, checker = null){
+        constructor(tag, x, y, playField, checker = null){
             if (!this.inBounds(x, y)) throw new Error('invalid cell coordinates');
             this.x = x;
             this.y = y;
             this.tag = tag;
+            this.pf = playField;
             this.checker = checker;
 
             this.tag.addEventListener('click', (e) => {
-                if(selectedChecker == null) return;
-                if(selectedChecker.x == this.x && selectedChecker.y == this.y) return;
+                if(this.pf.selectedChecker == null) return;
+                if(this.pf.selectedChecker.x == this.x && this.pf.selectedChecker.y == this.y) return;
 
                 console.log(`selected field - ${this.x};${this.y}`);
                 
-                selectedChecker.removeHighLight();
-                selectedChecker.goTo(this.x, this.y);
-                this.checker = selectedChecker;
-                selectedChecker = null;
+                this.pf.selectedChecker.removeHighLight();
+                if (this.pf.selectedChecker.goTo(this)){
+                    this.pf.selectedChecker = null;
+                }
             });
         }
 
-        drawChecker(checker){
+        setChecker(checker){
             this.tag.appendChild(checker.tag);
+            this.checker = checker;
         }
 
         removeChecker(checker){
             this.tag.removeChild(checker.tag);
+            this.checker = null;
         }
 
         inBounds(x, y){
@@ -61,7 +98,7 @@
     }
 
     class Checker {
-        constructor(tag, color, i, j){
+        constructor(tag, color, i, j, playField){
             tag.classList.add('checker');
             if (color == 'black')      tag.classList.add('checker-black');
             else if (color == 'white') tag.classList.add('checker-white');
@@ -71,11 +108,12 @@
             this.tag = tag;
             this.x = i;
             this.y = j;
+            this.pf = playField;
             this.isQueen = false;
 
             this.tag.addEventListener('click', (e) => {
-                if(selectedChecker != null) selectedChecker.removeHighLight();
-                selectedChecker = this;
+                if(this.pf.selectedChecker != null) this.pf.selectedChecker.removeHighLight();
+                this.pf.selectedChecker = this;
                 console.log(`touched - ${this.x};${this.y}`);
                 this.highLightMe();
             });
@@ -88,27 +126,31 @@
             this.tag.style.opacity = '1';
         }
 
-        // Лежит ли поле на одной диагонали с шашкой
+
+        // Лежит ли поле на одной диагонали с шашкой и черное ли оно
         checkFieldForMove(x, y){
-            return Math.abs(x - this.x) === Math.abs(y - this.y)// && (x + y) % 2 == 0;
+            return Math.abs(x - this.x) === Math.abs(y - this.y) && (x + y) % 2 != 0;
         }
 
         inBounds(x, y){
             return x >= 0 && y >= 0 && x < 8 && y < 8;
         }
 
-        goTo(x, y){
-            if(!this.checkFieldForMove(x, y) || !this.inBounds(x, y)) return false;
+        goTo(cell){
+            let x = cell.x;
+            let y = cell.y;
+            
+            if(!this.checkFieldForMove(x, y) || !this.inBounds(x, y)) throw new Error('Not valid move');
             let distance = Math.abs(x - this.x);
-            if (distance == 0) return false;
-            if (!this.isQueen && distance > 1) return false;
-            if (cells[y][x].checker != null) return false;
+            if (distance == 0) throw new Error('0 distance move');
+            if (!this.isQueen && distance > 1) throw new Error('Too far move for not-a-queen checker');
+            if (pf.cells[y][x].checker != null) throw new Error('Theres already another checker');
+            if (pf.cells[this.y][this.x].checker == null) throw new Error('Current cell is empty');
 
-            let oldCell = cells[this.y][this.x];
-            let newCell = cells[y][x];
+            let oldCell = pf.cells[this.y][this.x];
 
             oldCell.removeChecker(this);
-            newCell.drawChecker(this);
+            cell.setChecker(this);
 
             this.x = x;
             this.y = y;
@@ -116,47 +158,10 @@
         }
     }
 
+    const pf = new PlayField();
+    pf.createGameField(1);
 
-
-    function createGameField(numTable){
-        const tbody = document.getElementById('tbody' + numTable);
-        for(var i = 0; i < 8; i++){
-            const row = document.createElement('tr');
-            cells.push([]);
-            for(var j = 0; j < 8; j++){
-                var color = (j + i) % 2  == 0 ? 'white' : 'black';
-                var td = document.createElement('td');
-                td.style.backgroundColor = color;
-
-                var checker = null;
-                if(color == 'black' && i != 3 && i != 4){
-                    let shashka = document.createElement('div');
-
-                    // checker init
-                    var checkerColor = 'white'
-                    if(i > 4) checkerColor = 'black'
-                    checker = new Checker(shashka, checkerColor, j, i)
-
-                    //checker saving
-                    //if(numTable == 1) checkers.push(checker);
-                    //else checkersForAlly.push(checker);
-                    td.appendChild(shashka);
-                }
-                cells[i].push(new Cell(td, j, i, checker));
-                row.appendChild(td);
-            }
-            tbody.appendChild(row);
-        }
-    }
-
-    createGameField(1);
     //createGameField(2);
-
-    //let test = checkers[8];
-    //test.tag.style.backgroundColor = 'red';
-    //test.goTo(2, 3);
-
-    //console.log(test);
     
 </script>
 
