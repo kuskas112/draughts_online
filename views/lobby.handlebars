@@ -1,5 +1,31 @@
-<ul>
-    <li>1</li>
-    <li>1</li>
-    <li>1</li>
-</ul>
+<script src="/socket.io/socket.io.js"></script>
+you: <div id="me">{{{ me }}}</div>
+<ul id="playersList"></ul>
+<a href="/exit" onclick="exitFromLobby()">Выйти</a>
+
+<script>
+    const me = document.getElementById('me').innerText;
+    const ul = document.getElementById('playersList');
+    const socket = io();
+    socket.emit('getLobby');
+
+    socket.on('setLobby', (players, host) => {
+        console.table(players);
+        console.log(`host - ${host}`);
+        ul.innerHTML = '';
+        for(let i = 0; i < players.length; i++){
+            let el = document.createElement('li');
+            el.innerText = players[i];
+            if (players[i] == host){
+                el.classList.add('host-tile');
+            }
+            ul.appendChild(el);
+        }
+    });
+
+
+    function exitFromLobby(){
+        socket.emit('exitFromLobby', me);
+    }
+
+</script>

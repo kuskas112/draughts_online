@@ -1,3 +1,24 @@
 body{
-    background-color: brown;
+    display: grid;
+    align-content: center;
+    justify-content: center;
+    height: 100vh;
+    background-color: aqua;
+}
+
+ul{
+    font-size: large;
+}
+
+li{
+    display: block;
+    margin: 2vh;
+    padding: 2vh;
+    border-radius: 7px;
+    background-color: rgb(250, 247, 243);
+    text-align: center;
+}
+
+.host-tile{
+    background-color: green;
 }

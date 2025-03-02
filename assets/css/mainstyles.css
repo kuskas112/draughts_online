@@ -1,3 +1,7 @@
+*{
+    font-family: 'Montserrat', sans-serif;
+}
+
 td{
     display: inline-flex;
     width: 26px;
