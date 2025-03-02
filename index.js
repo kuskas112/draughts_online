@@ -5,6 +5,7 @@ const http = require('http');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const { param } = require('express/lib/request');
+const { link } = require('fs');
 
 const app = express();
 const server = http.createServer(app);
@@ -49,7 +50,7 @@ class Lobby{
     }
 
     isFull(){
-        return this.countPlayers < 2; // пока 2 для теста
+        return this.countPlayers >= 2; // пока 2 для теста
     }
 
     addPlayer(username){
@@ -68,13 +69,15 @@ app.get('/', (req, res) => {
         return;
     }
 
-    try{
-        lobby.addPlayer(req.cookies.username);
+    if(!lobby.isFull()){
+        try{
+            lobby.addPlayer(req.cookies.username);
+        }
+        catch(e){
+            console.error(e.message);
+        }
     }
-    catch(e){
-        console.error(e.message);
-    }
-
+    
     console.table(lobby.players);
 
     res.render('home', {username: req.cookies.username});
@@ -86,6 +89,14 @@ app.get('/login', (req, res) => {
     }
     res.render('login', params);
 });
+
+app.get('/lobby', (req, res) => {
+    let params = {
+        styles: ['lobby.css']
+    }
+    res.render('lobby', params);
+});
+
 
 app.post('/login', (req, res) => {
     let name;
