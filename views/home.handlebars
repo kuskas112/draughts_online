@@ -1,7 +1,5 @@
-<header>
-    {{{header}}}
-</header>
 <script src="/socket.io/socket.io.js"></script>
+<header>{{{ username }}}</header>
 <main class="main">
     <table border="1">
         <tbody id="tbody1">
@@ -189,46 +187,11 @@
         }
     }
 
+    const socket = io();
+
     const pf = new PlayField();
     pf.bottomCheckersColor = 'white';
     pf.createGameField(1);
 
     
 </script>
-
-<style>
-    td{
-        display: inline-flex;
-        width: 26px;
-        height: 26px;
-        align-items: center;
-        justify-content: center;
-        position: relative;
-    }
-
-    .checker{
-        width: 20px;
-        height: 20px;
-        border-radius: 50%;
-        background-color: red;
-    }
-
-    .main{
-        display: flex;
-    }
-
-    table{
-        margin-left: 40px;
-        margin-right: 40px;
-    }
-
-    .checker-white{
-        background-color: bisque;
-    }
-
-    .checker-black{
-        background-color: rgb(105, 98, 98);
-    }
-
-
-</style>

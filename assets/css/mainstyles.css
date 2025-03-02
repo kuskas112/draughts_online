@@ -1,0 +1,33 @@
+td{
+    display: inline-flex;
+    width: 26px;
+    height: 26px;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.checker{
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background-color: red;
+}
+
+.main{
+    display: flex;
+}
+
+table{
+    margin-left: 40px;
+    margin-right: 40px;
+}
+
+.checker-white{
+    background-color: bisque;
+}
+
+.checker-black{
+    background-color: rgb(105, 98, 98);
+}
+
