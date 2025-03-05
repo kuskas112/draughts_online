@@ -5,6 +5,7 @@ const http = require('http');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const { param } = require('express/lib/request');
+const { monitorEventLoopDelay } = require('perf_hooks');
 const app = express();
 const server = http.createServer(app);
 const io = socketIo(server);
@@ -13,7 +14,7 @@ io.on('connection', (socket) => {
     console.log('Новое подключение!');
     
     socket.on('move', (moveObj) => {
-        console.log(moveObj);
+        io.emit('move', moveObj);
     });
 
     socket.on('getLobby', () => {
@@ -24,6 +25,10 @@ io.on('connection', (socket) => {
         console.log(`request to exit from ${name}`)
         lobby.removePlayer(name);
         io.emit('setLobby', lobby.players, lobby.hostPlayer);
+    });
+
+    socket.on('startGame', () => {
+        io.emit('startGame');
     });
 
 });
@@ -102,8 +107,13 @@ app.get('/', (req, res) => {
     catch(e){
         console.error(e.message);
     }
-    
-    //res.render('home', {username: req.cookies.username});
+});
+
+app.get('/game', (req, res) => {
+    let params = {
+        username: req.cookies.username
+    }
+    res.render('home', {username: req.cookies.username});
 });
 
 app.get('/login', (req, res) => {

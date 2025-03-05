@@ -17,12 +17,33 @@
 
 <script>
 
+
+
     class PlayField{
         constructor(){
             this.cells = [];                    // поля игровой доски
             this.currentMove = 'white';         // кто сейчас ходит
             this.selectedChecker = null;        // выбранная для хода шашка
             this.bottomCheckersColor = 'black'; // цвет шашек в нижней части, то есть каким цветом ходит игрок
+            this.socket = io();
+            this.socket.on('move', (checkerData) => {
+                let xFrom = checkerData.xFrom;
+                let yFrom = checkerData.yFrom;
+                let cellFrom = this.cells[yFrom][xFrom];
+                let checker = cellFrom.checker;
+
+                let xTo = checkerData.xTo;
+                let yTo = checkerData.yTo;
+                let cellTo = this.cells[yTo][xTo];
+
+                try{
+                    checker.goTo(cellTo);                
+                }
+                catch(e){
+                    console.error(e.message);
+                }
+
+            });
         }
 
         endMove(){
@@ -76,15 +97,14 @@
                 console.log(`selected field - ${this.x};${this.y}`);
                 
                 this.pf.selectedChecker.removeHighLight();
-                try{
-                    this.pf.selectedChecker.goTo(this);
-                }
-                catch(e){
-                    console.error(e.message);
-                }
-                finally{
-                    this.pf.selectedChecker = null;
-                }
+                const data = {
+                    xFrom: this.pf.selectedChecker.x,
+                    yFrom: this.pf.selectedChecker.y,
+                    xTo: this.x,
+                    yTo: this.y
+                };
+                this.pf.socket.emit('move', data);
+                this.pf.selectedChecker = null;
             });
         }
 
@@ -132,6 +152,14 @@
             this.tag.style.opacity = '1';
         }
 
+        static formTag(color){
+            const tag = document.createElement('div');
+            tag.classList.add('checker');
+            if (color == 'black')      tag.classList.add('checker-black');
+            else if (color == 'white') tag.classList.add('checker-white');
+            else throw new Error("invalid color");
+            return tag;
+        }
 
         // Лежит ли поле на одной диагонали с шашкой и черное ли оно
         checkFieldForMove(x, y){
@@ -181,15 +209,13 @@
                 }
             }
 
-            oldCell.removeChecker();
-            cell.setChecker(this);
-
             this.x = x;
             this.y = y;
+
+            oldCell.removeChecker();
+            cell.setChecker(this);
         }
     }
-
-    const socket = io();
 
     const pf = new PlayField();
     pf.bottomCheckersColor = 'white';

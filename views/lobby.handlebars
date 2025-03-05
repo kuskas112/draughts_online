@@ -1,6 +1,7 @@
 <script src="/socket.io/socket.io.js"></script>
 you: <div id="me">{{{ me }}}</div>
 <ul id="playersList"></ul>
+<div id="gameButton"></div>
 <a href="/exit" onclick="exitFromLobby()">Выйти</a>
 
 <script>
@@ -21,11 +22,37 @@ you: <div id="me">{{{ me }}}</div>
             }
             ul.appendChild(el);
         }
+
+        console.log(`me is host = ${me == host}`)
+        const buttonTag = document.getElementById('gameButton');
+        buttonTag.innerHTML = '';
+
+        if (players.length < 2 || me != host){
+            return;   
+        }
+
+        const gameButton = formGameButton();
+        buttonTag.appendChild(gameButton);
+
     });
 
+    socket.on('startGame', () => {
+        window.location.href = '/game';
+    });
 
     function exitFromLobby(){
         socket.emit('exitFromLobby', me);
+    }
+
+    function formGameButton(){
+        const button = document.createElement('button');
+        button.innerText = 'Начать игру!';
+
+        button.addEventListener('click', (e) => {
+            socket.emit('startGame');
+        });
+
+        return button;
     }
 
 </script>
