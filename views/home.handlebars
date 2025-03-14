@@ -1,5 +1,5 @@
 <script src="/socket.io/socket.io.js"></script>
-<header>{{{ username }}}</header>
+<header id="me">{{{ username }}}</header>
 <main class="main">
     <table border="1">
         <tbody id="tbody1">
@@ -20,12 +20,12 @@
 
 
     class PlayField{
-        constructor(bottomCheckersColor = 'black'){
+        constructor(bottomCheckersColor = 'black', socket){
             this.cells = [];                    // поля игровой доски
             this.currentMove = 'white';         // кто сейчас ходит
             this.selectedChecker = null;        // выбранная для хода шашка
             this.bottomCheckersColor = bottomCheckersColor; // цвет шашек в нижней части, то есть каким цветом ходит игрок
-            this.socket = io();
+            this.socket = socket;
             this.socket.on('move', (checkerData) => {
                 let xFrom = checkerData.xFrom;
                 let yFrom = checkerData.yFrom;
@@ -66,8 +66,8 @@
 
                         // checker init
 
-                        var checkerColor = pf.bottomCheckersColor == 'black' ? 'white' : 'black';
-                        if(i > 4) checkerColor = pf.bottomCheckersColor == 'black' ? 'black' : 'white';
+                        var checkerColor = this.bottomCheckersColor == 'black' ? 'white' : 'black';
+                        if(i > 4) checkerColor = this.bottomCheckersColor == 'black' ? 'black' : 'white';
                         checker = new Checker(shashka, checkerColor, j, i, this);
 
                         td.appendChild(shashka);
@@ -98,6 +98,7 @@
                 
                 this.pf.selectedChecker.removeHighLight();
                 const data = {
+                    username: me,
                     xFrom: this.pf.selectedChecker.x,
                     yFrom: this.pf.selectedChecker.y,
                     xTo: this.x,
@@ -217,9 +218,31 @@
         }
     }
 
+    const me = document.getElementById('me').innerText;
     const pf = new PlayField();
-    pf.bottomCheckersColor = 'white';
-    pf.createGameField(1);
+    
+    const socket = io();
+    var gameStarted = false;
+    socket.emit('startingGame', me);
 
+    socket.emit('getPairs'); // получить играющие пары и начать игру
+    socket.on('setPairs', (pairs) => {
+        if(gameStarted) return; // если игра уже началась - не нужно ничего делать
+        console.table(pairs);
+        pairs.forEach(pair => {
+            if(pair.includes(me)){
+                if(pair[0] == me){
+                    // если я первый в паре, то я хожу белыми
+                    pf.bottomCheckersColor = 'white';
+                }
+                else{
+                    // если я второй в паре, то я хожу черными
+                    pf.bottomCheckersColor = 'black';
+                }
+                pf.createGameField(1);
+                gameStarted = true;
+            }
+        });
+    });
     
 </script>

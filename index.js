@@ -9,16 +9,21 @@ const { monitorEventLoopDelay } = require('perf_hooks');
 const app = express();
 const server = http.createServer(app);
 const io = socketIo(server);
+const connections = {};
 
 io.on('connection', (socket) => {
-    console.log('Новое подключение!');
+    console.log(`Новое подключение! ${socket.id}`);
+    connections[socket.id] = socket;
     
+    
+
     socket.on('move', (moveObj) => {
-        io.emit('move', moveObj);
+        //io.emit('move', moveObj);
+
     });
 
     socket.on('getLobby', () => {
-        io.emit('setLobby', lobby.players, lobby.hostPlayer);
+        io.emit('setLobby', lobby.getPlayersUsernames(), lobby.hostPlayer);
     });
 
     socket.on('getPairs', () => {
@@ -28,7 +33,7 @@ io.on('connection', (socket) => {
     socket.on('exitFromLobby', (name) => {
         console.log(`request to exit from ${name}`)
         lobby.removePlayer(name);
-        io.emit('setLobby', lobby.players, lobby.hostPlayer);
+        io.emit('setLobby', lobby.getPlayersUsernames(), lobby.hostPlayer);
     });
 
     socket.on('startGame', () => {
@@ -51,7 +56,13 @@ io.on('connection', (socket) => {
         }
     })
 
+    socket.on('disconnect', () => {
+        console.log(`Отключение! ${socket.id}`);
+        delete connections[socket.id];
+    });
 });
+
+
 
 const host = 'localhost';
 const port = 7000;
@@ -67,6 +78,14 @@ app.use(cookieParser());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
+class Player{
+    constructor(name){
+        this.name = name;
+        this.isHost = false;
+        this.socket = null;
+    }
+}
+
 class Lobby{
     constructor(){
         this.players = [];
@@ -81,11 +100,19 @@ class Lobby{
 
     isPlayerIn(username){
         for (let i = 0; i < this.players.length; i++) {
-            if(this.players[i] == username){
+            if(this.players[i].name == username){
                 return true;
             }
         }
         return false;
+    }
+
+    getPlayersUsernames(){
+        let usernames = [];
+        for (let i = 0; i < this.players.length; i++) {
+            usernames.push(this.players[i].name);
+        }
+        return usernames;
     }
 
     isFull(){
@@ -143,23 +170,33 @@ class Lobby{
         if (this.isPlayerIn(username)) throw new Error('already have that player');
         if(this.isFull()) throw new Error('too much players');
 
-        if(this.isEmpty()) this.hostPlayer = username;
-        this.players.push(username);
+        let player = new Player(username);
+        if(this.isEmpty()) {
+            this.hostPlayer = username;
+            player.isHost = true;
+        }
+        this.players.push(player);
         // хост - первый зашедший в лобби
     }
 
-    removePlayer(username){
-        if(username === undefined) throw new Error('undefined deleted player')
-        this.players = this.players.filter(name => name !== username);
+    removePlayer(username) {
+        if (username === undefined) throw new Error('undefined deleted player');
         
-        //игрок не может занимать пару после выхода из лобби
+        // Фильтруем массив игроков, исключая игрока с указанным именем
+        this.players = this.players.filter(player => player.username !== username);
+        
+        // Игрок не может занимать пару после выхода из лобби
         this.removeFromPair(username);
-
-        // если удалили хоста и есть кем его заменить - сделать это
-        if(username == this.hostPlayer && !this.isEmpty()) this.hostPlayer = this.players[0];
-        // если список игроков опустел - хоста нет
-        else if (this.isEmpty()) this.hostPlayer = null;
-        // иначе - хост в порядке
+        
+        // Если удалили хоста и есть кем его заменить - сделать это
+        if (username === this.hostPlayer && !this.isEmpty()) {
+            this.hostPlayer = this.players[0].username;
+        }
+        // Если список игроков опустел - хоста нет
+        else if (this.isEmpty()) {
+            this.hostPlayer = null;
+        }
+        // Иначе - хост в порядке
     }
 };
 
