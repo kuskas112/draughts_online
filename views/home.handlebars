@@ -20,11 +20,11 @@
 
 
     class PlayField{
-        constructor(){
+        constructor(bottomCheckersColor = 'black'){
             this.cells = [];                    // поля игровой доски
             this.currentMove = 'white';         // кто сейчас ходит
             this.selectedChecker = null;        // выбранная для хода шашка
-            this.bottomCheckersColor = 'black'; // цвет шашек в нижней части, то есть каким цветом ходит игрок
+            this.bottomCheckersColor = bottomCheckersColor; // цвет шашек в нижней части, то есть каким цветом ходит игрок
             this.socket = io();
             this.socket.on('move', (checkerData) => {
                 let xFrom = checkerData.xFrom;

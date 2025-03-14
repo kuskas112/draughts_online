@@ -21,6 +21,10 @@ io.on('connection', (socket) => {
         io.emit('setLobby', lobby.players, lobby.hostPlayer);
     });
 
+    socket.on('getPairs', () => {
+        io.emit('setPairs', lobby.pairs);
+    });
+
     socket.on('exitFromLobby', (name) => {
         console.log(`request to exit from ${name}`)
         lobby.removePlayer(name);
@@ -30,6 +34,22 @@ io.on('connection', (socket) => {
     socket.on('startGame', () => {
         io.emit('startGame');
     });
+
+    socket.on('pairClick', (name) => {
+        console.log(`request to pair with ${name}`)
+        console.table(lobby.pairs);
+        try{
+            lobby.addToPair(name);
+            io.emit('setPairs', lobby.pairs);
+
+            if(lobby.isPairsFull()){
+                io.emit('canStartGame', lobby.hostPlayer);
+            }
+        }
+        catch(e){
+            console.error(e.message);
+        }
+    })
 
 });
 
@@ -51,6 +71,12 @@ class Lobby{
     constructor(){
         this.players = [];
         this.hostPlayer = null;
+        this.pairs = [];
+        this.maxPairs = 1;  //2; пока что 1 пара
+        // создание пустых пар
+        for (let i = 0; i < this.maxPairs; i++) {
+            this.pairs.push([]);
+        }
     }
 
     isPlayerIn(username){
@@ -70,6 +96,49 @@ class Lobby{
         return this.players.length == 0;
     }
 
+    isPairsFull(){
+        for (let i = 0; i < this.pairs.length; i++) {
+            if(this.pairs[i].length < 2){
+                return false;
+            }
+        }
+        return true;
+    }
+
+    addToPair(username){
+        if(this.pairs.length > this.maxPairs) throw new Error('too much pairs');
+
+        // проверка вхождения username в пары
+        for (let i = 0; i < this.pairs.length; i++) {
+            if(this.pairs[i].includes(username)){
+                throw new Error('already in pair');
+            }
+        }
+
+        for (let i = 0; i < this.pairs.length; i++) {
+            if(this.pairs[i].length < 2){
+                this.pairs[i].push(username);
+                return;
+            }
+        }
+        throw new Error('no empty pairs');
+    }
+
+    removeFromPair(username){
+        for (let i = 0; i < this.pairs.length; i++) {
+            if(this.pairs[i].length == 2){
+                if(this.pairs[i][0] == username){
+                    this.pairs[i].shift();
+                    return;
+                }
+                if(this.pairs[i][1] == username){
+                    this.pairs[i].pop();
+                    return;
+                }
+            }
+        }
+    }
+
     addPlayer(username){
         if (this.isPlayerIn(username)) throw new Error('already have that player');
         if(this.isFull()) throw new Error('too much players');
@@ -82,6 +151,9 @@ class Lobby{
     removePlayer(username){
         if(username === undefined) throw new Error('undefined deleted player')
         this.players = this.players.filter(name => name !== username);
+        
+        //игрок не может занимать пару после выхода из лобби
+        this.removeFromPair(username);
 
         // если удалили хоста и есть кем его заменить - сделать это
         if(username == this.hostPlayer && !this.isEmpty()) this.hostPlayer = this.players[0];

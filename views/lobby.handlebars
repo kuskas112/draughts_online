@@ -1,14 +1,26 @@
 <script src="/socket.io/socket.io.js"></script>
-you: <div id="me">{{{ me }}}</div>
-<ul id="playersList"></ul>
-<div id="gameButton"></div>
-<a href="/exit" onclick="exitFromLobby()">Выйти</a>
+<div class="lobby-container">
+    you: <div id="me">{{{ me }}}</div>
+    <ul id="playersList"></ul>
+    <div id="gameButton"></div>
+    <a href="/exit" onclick="exitFromLobby()">Выйти</a>
+</div>
+<div class="pairs-container">
+    <div class="pair">
+    </div>
+    <div class="pair">
+        <div class="pair-name">Player 3</div>
+        <div class="pair-name">Player 4</div>
+    </div>
+</div>
 
 <script>
     const me = document.getElementById('me').innerText;
     const ul = document.getElementById('playersList');
     const socket = io();
     socket.emit('getLobby');
+    socket.emit('getPairs');
+    
 
     socket.on('setLobby', (players, host) => {
         console.table(players);
@@ -30,14 +42,44 @@ you: <div id="me">{{{ me }}}</div>
         if (players.length < 2 || me != host){
             return;   
         }
-
-        const gameButton = formGameButton();
-        buttonTag.appendChild(gameButton);
-
     });
 
     socket.on('startGame', () => {
         window.location.href = '/game';
+    });
+
+    socket.on('setPairs', (pairs) => {
+        console.log(pairs);
+        const pairsContainer = document.querySelector('.pairs-container');
+        pairsContainer.innerHTML = '';
+        pairs.forEach(pair => {
+            const pairDiv = document.createElement('div');
+            pairDiv.classList.add('pair');
+            pairDiv.addEventListener('click', (e) => {
+                console.log('pair clicked');
+                socket.emit('pairClick', me);
+            });
+            pair.forEach(player => {
+                const playerDiv = document.createElement('div');
+                playerDiv.classList.add('pair-name');
+                playerDiv.innerText = player;
+                pairDiv.appendChild(playerDiv);
+            });
+            pairsContainer.appendChild(pairDiv);
+        });
+    });
+
+    socket.on('canStartGame', (host) => {
+        const buttonTag = document.getElementById('gameButton');
+        buttonTag.innerHTML = '';
+
+        if(me != host){
+            buttonTag.innerText = 'Ждем начала игры...';
+            return;
+        }
+
+        const gameButton = formGameButton();
+        buttonTag.appendChild(gameButton);
     });
 
     function exitFromLobby(){

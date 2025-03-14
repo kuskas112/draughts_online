@@ -6,6 +6,35 @@ body{
     background-color: aqua;
 }
 
+.lobby-container{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-gap: 2vh;
+    justify-content: center;
+    align-content: center;
+    background-color: rgb(250, 247, 243);
+    padding: 2vh;
+    border-radius: 7px;
+}
+
+.pairs-container{
+    margin-top: 20px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-gap: 2vh;
+    justify-content: center;
+    align-content: center;
+    background-color: rgb(250, 247, 243);
+    padding: 2vh;
+    border-radius: 7px;
+}
+
+.pair{
+    min-height: 40px;
+    background-color: royalblue;
+    border: solid black 1px;
+}
+
 ul{
     font-size: large;
 }
