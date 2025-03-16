@@ -20,11 +20,15 @@
 
 
     class PlayField{
-        constructor(bottomCheckersColor = 'black', socket){
+        constructor(bottomCheckersColor = 'black'){
             this.cells = [];                    // поля игровой доски
             this.currentMove = 'white';         // кто сейчас ходит
             this.selectedChecker = null;        // выбранная для хода шашка
             this.bottomCheckersColor = bottomCheckersColor; // цвет шашек в нижней части, то есть каким цветом ходит игрок
+            
+        }
+
+        setSocket(socket){
             this.socket = socket;
             this.socket.on('move', (checkerData) => {
                 let xFrom = checkerData.xFrom;
@@ -42,7 +46,6 @@
                 catch(e){
                     console.error(e.message);
                 }
-
             });
         }
 
@@ -189,8 +192,8 @@
 
             let oldCell = pf.cells[this.y][this.x];
             if (Math.abs(distance) > 1){ // либо ходит дамка, либо кого то щас съедят, либо и то и то
-                let xSign = (x - this.x) / Math.abs(x - this.x) // получаем знаки для координатных осей
-                let ySign = (y - this.y) / Math.abs(y - this.y) 
+                let xSign = Math.sign(x - this.x); // получаем знаки для координатных осей
+                let ySign = Math.sign(y - this.y);
                 let eatenCell = null; // клетка с шашкой, которую планируется съесть
                 for(let i = 1; i <= Math.abs(distance); i++){
                     // одна из клеток на диагонали поедания
@@ -223,7 +226,8 @@
     
     const socket = io();
     var gameStarted = false;
-    socket.emit('startingGame', me);
+    pf.setSocket(socket);
+    socket.emit('startingGame', me); // запрос на привязку текущего сокета к игроку для обработки мультиплеерных запросов
 
     socket.emit('getPairs'); // получить играющие пары и начать игру
     socket.on('setPairs', (pairs) => {
@@ -243,6 +247,10 @@
                 gameStarted = true;
             }
         });
+    });
+
+    socket.on('error', (message) => {
+        confirm(`Ошибка: ${message}`);
     });
     
 </script>

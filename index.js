@@ -18,8 +18,28 @@ io.on('connection', (socket) => {
     
 
     socket.on('move', (moveObj) => {
-        //io.emit('move', moveObj);
+        console.log(`move from ${moveObj.username} to [${moveObj.xTo}, ${moveObj.yTo}]`);
+        console.table(moveObj);
+        try{
+            const opponent = lobby.getPlayersOpponent(moveObj.username);
+            const opponentSocket = lobby.getPlayerWithUsername(opponent).socket;
 
+            // чтобы на перевернутой доске оппонента шашки были на верных местах
+            // меняем координаты для оппонента
+            const opponentMoveObj = { // username клиенту не нужен
+                xFrom: 7 - moveObj.xFrom,
+                yFrom: 7 - moveObj.yFrom,
+                xTo: 7 - moveObj.xTo,
+                yTo: 7 - moveObj.yTo,
+            }
+            opponentSocket.emit('move', opponentMoveObj);
+
+            // ходящему отправляем обратно его же ход
+            socket.emit('move', moveObj);
+        }
+        catch(e){
+            console.error(e.message);
+        }
     });
 
     socket.on('getLobby', () => {
@@ -36,8 +56,24 @@ io.on('connection', (socket) => {
         io.emit('setLobby', lobby.getPlayersUsernames(), lobby.hostPlayer);
     });
 
+    // запрос на начало игры
     socket.on('startGame', () => {
         io.emit('startGame');
+    });
+
+    // запрос на привязку текущего сокета к игроку для обработки мультиплеерных запросов
+    socket.on('startingGame', (username) => {
+        try{
+            console.log(`player ${username} requested to start game`);
+            const player = lobby.getPlayerWithUsername(username);
+            player.setSocket(socket);
+            console.log(`player ${username} is ready to play`);
+        }
+        catch(e){
+            console.error(e.message);
+            socket.emit('error', e.message);
+            socket.disconnect();
+        }
     });
 
     socket.on('pairClick', (name) => {
@@ -84,6 +120,10 @@ class Player{
         this.isHost = false;
         this.socket = null;
     }
+
+    setSocket(socket){
+        this.socket = socket;
+    }
 }
 
 class Lobby{
@@ -98,6 +138,15 @@ class Lobby{
         }
     }
 
+    getPlayerWithUsername(username){
+        for (let i = 0; i < this.players.length; i++) {
+            if(this.players[i].name === username){
+                return this.players[i];
+            }
+        }
+        throw new Error('no such player');
+    }
+
     isPlayerIn(username){
         for (let i = 0; i < this.players.length; i++) {
             if(this.players[i].name == username){
@@ -105,6 +154,19 @@ class Lobby{
             }
         }
         return false;
+    }
+
+    getPlayersOpponent(username){
+        if (!this.isPlayerIn(username)) throw new Error('no such player');
+        for (let i = 0; i < this.pairs.length; i++) {
+            if(this.pairs[i][0] == username){
+                return this.pairs[i][1];
+            }
+            if(this.pairs[i][1] == username){
+                return this.pairs[i][0];
+            }
+        }
+        throw new Error('no opponent');
     }
 
     getPlayersUsernames(){
@@ -183,14 +245,14 @@ class Lobby{
         if (username === undefined) throw new Error('undefined deleted player');
         
         // Фильтруем массив игроков, исключая игрока с указанным именем
-        this.players = this.players.filter(player => player.username !== username);
+        this.players = this.players.filter(player => player.name !== username);
         
         // Игрок не может занимать пару после выхода из лобби
         this.removeFromPair(username);
         
         // Если удалили хоста и есть кем его заменить - сделать это
         if (username === this.hostPlayer && !this.isEmpty()) {
-            this.hostPlayer = this.players[0].username;
+            this.hostPlayer = this.players[0].name;
         }
         // Если список игроков опустел - хоста нет
         else if (this.isEmpty()) {
