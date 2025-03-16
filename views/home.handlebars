@@ -25,7 +25,6 @@
             this.currentMove = 'white';         // кто сейчас ходит
             this.selectedChecker = null;        // выбранная для хода шашка
             this.bottomCheckersColor = bottomCheckersColor; // цвет шашек в нижней части, то есть каким цветом ходит игрок
-            
         }
 
         setSocket(socket){
@@ -41,7 +40,8 @@
                 let cellTo = this.cells[yTo][xTo];
 
                 try{
-                    checker.goTo(cellTo);                
+                    checker.goTo(cellTo);               
+                    this.endMove(); 
                 }
                 catch(e){
                     console.error(e.message);
@@ -68,7 +68,6 @@
                         let shashka = document.createElement('div');
 
                         // checker init
-
                         var checkerColor = this.bottomCheckersColor == 'black' ? 'white' : 'black';
                         if(i > 4) checkerColor = this.bottomCheckersColor == 'black' ? 'black' : 'white';
                         checker = new Checker(shashka, checkerColor, j, i, this);
@@ -107,8 +106,20 @@
                     xTo: this.x,
                     yTo: this.y
                 };
-                this.pf.socket.emit('move', data);
-                this.pf.selectedChecker = null;
+
+                try{
+                    // игрок может ходить только одним цветом шашек
+                    if(this.pf.selectedChecker.color != this.pf.bottomCheckersColor) throw new Error('Not your checker color');
+                    // перед отправкой хода проверяем его валидность и делаем его
+                    this.pf.selectedChecker.goTo(this);
+                    this.pf.socket.emit('move', data);
+                    this.pf.selectedChecker = null;
+                    this.pf.endMove();
+                }
+                catch(e){
+                    console.error(e.message);
+                    return;
+                }
             });
         }
 
@@ -174,10 +185,14 @@
             return x >= 0 && y >= 0 && x < 8 && y < 8;
         }
 
+        // метод для перемещения шашки на другую клетку
+        // не проверяет цвет шашки, которой ходит игрок.
+        // Это делается в Cell.constructor
         goTo(cell){
             let x = cell.x;
             let y = cell.y;
             
+            if(this.pf.currentMove != this.color) throw new Error('Not your move');
             if(!this.checkFieldForMove(x, y) || !this.inBounds(x, y)) throw new Error('Not valid move');
             if (pf.cells[y][x].checker != null) throw new Error('Theres already another checker');
             if (pf.cells[this.y][this.x].checker == null) throw new Error('Current cell is empty');
@@ -215,6 +230,7 @@
 
             this.x = x;
             this.y = y;
+            if (this.y == 0 || this.y == 7) this.isQueen = true;
 
             oldCell.removeChecker();
             cell.setChecker(this);

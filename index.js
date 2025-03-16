@@ -33,9 +33,6 @@ io.on('connection', (socket) => {
                 yTo: 7 - moveObj.yTo,
             }
             opponentSocket.emit('move', opponentMoveObj);
-
-            // ходящему отправляем обратно его же ход
-            socket.emit('move', moveObj);
         }
         catch(e){
             console.error(e.message);
