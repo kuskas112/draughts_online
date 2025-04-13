@@ -16,8 +16,14 @@
 </main>
 
 <script>
-
-
+    // класс, объекты которого содержат информацию о совершенном ходе
+    class MoveInfo{
+        constructor(cellFrom, cellTo){
+            this.cellFrom = cellFrom;
+            this.cellTo = cellTo;
+            this.cellEated = null; // клетка с шашкой, которую планируется съесть
+        }
+    }
 
     class PlayField{
         constructor(bottomCheckersColor = 'black'){
@@ -25,6 +31,8 @@
             this.currentMove = 'white';         // кто сейчас ходит
             this.selectedChecker = null;        // выбранная для хода шашка
             this.bottomCheckersColor = bottomCheckersColor; // цвет шашек в нижней части, то есть каким цветом ходит игрок
+            this.isCapturingObligation = true; // необходимость съесть шашку противника при возможности
+            this.highlightedCells = null;       // подсвечиваемые клетки поля (находятся под угрозой съедения)
         }
 
         setSocket(socket){
@@ -51,32 +59,42 @@
         // совершение хода и его обработка
         makeMove(checkerFrom, cellTo){
             // перед отправкой хода проверяем его валидность и делаем его
-            let cellEated = checkerFrom.goTo(cellTo);
-            // продолжаем ходить если съели шашку противника            
-            // и есть еще шашки противника для съедения
-            let needToChangeColor = true;        
-            if (cellEated){
-                let eatableCells = checkerFrom.checkForEatableCells();
-                if(eatableCells.length > 0){
-                    needToChangeColor = false;
-                }
-            }
-            this.endMove(needToChangeColor);
-        }
+            let moveInfo = checkerFrom.goTo(cellTo);
+            let cellEated = moveInfo.cellEated;
 
-        // завершение хода и смена ходящего при необходимости
-        endMove(needToChangeColor = true){
-            if(this.highlightedCells){
+            if(this.highlightedCells != null && this.highlightedCells.length > 0){ 
+                // если были шашки противника под угрозой, но они не были съедены
+                if(!cellEated) throw new Error('Required checker hasnt been eated');
                 this.highlightedCells.forEach(cell => cell.removeHighLight());
             }
 
-            if(needToChangeColor){
-                this.currentMove = this.currentMove == 'white' ? 'black' : 'white';
-            }
+            // совершение хода
+            moveInfo.cellFrom.removeChecker();
+            checkerFrom.x = cellTo.x;
+            checkerFrom.y = cellTo.y;
+            moveInfo.cellTo.setChecker(checkerFrom);
+            if (cellTo.y == 0 || cellTo.y == 7) checkerFrom.isQueen = true;
 
-            // проход по клеткам игрового поля и проверка на необходимость поедания
-            // шашки противника
             this.highlightedCells = [];
+            if(!cellEated) this.changeMove();
+            else{
+                cellEated.removeChecker();
+                this.highlightedCells = checkerFrom.checkForEatableCells();
+                // ход переходит только если больше нечего есть
+                if(this.highlightedCells.length == 0) this.changeMove();
+                else{
+                    this.highlightedCells.forEach(innerCell => {
+                        innerCell.highLightMe();
+                    });
+                }
+                
+            }
+        }
+
+        changeMove(){
+            this.currentMove = this.currentMove == 'white' ? 'black' : 'white';
+            // проход по ВСЕМ клеткам игрового поля и проверка на необходимость поедания
+            // шашки противника
             for(let y = 0; y < this.cells.length; y++){
                 for(let x = 0; x < this.cells.length; x++){
                     let cell = this.cells[y][x];
@@ -88,6 +106,7 @@
                         eatableCells.forEach(innerCell => {
                             innerCell.highLightMe();
                             this.highlightedCells.push(innerCell);
+                            // найденные кандидаты на съедение в массив highlightedCells
                         });
                     }
                 }
@@ -100,7 +119,7 @@
                 const row = document.createElement('tr');
                 this.cells.push([]);
                 for(var j = 0; j < 8; j++){
-                    var color = (j + i) % 2  == 0 ? 'white' : 'black';
+                    var color = (j + i) % 2 == 0 ? 'white' : 'black';
                     var td = document.createElement('td');
                     td.style.backgroundColor = color;
 
@@ -164,6 +183,7 @@
         }
 
         setChecker(checker){
+            if(this.checker !== null) this.removeChecker();
             this.tag.appendChild(checker.tag);
             this.checker = checker;
         }
@@ -235,6 +255,7 @@
 
         // проверка на возможность съесть шашку
         // вокруг текущей
+        // возвращает массив клеток с шашками которые можно съесть
         checkForEatableCells(){
             let x = this.x;
             let y = this.y;
@@ -269,15 +290,15 @@
         // метод для перемещения шашки на другую клетку
         // не проверяет цвет шашки, которой ходит игрок.
         // Это делается в Cell.constructor
-        // Возвращет true если ходом была съедена шашка противника
+        // Возвращает объект moveInfo
         goTo(cell){
             let x = cell.x;
             let y = cell.y;
             
             if(this.pf.currentMove != this.color) throw new Error('Not your move');
             if(!this.checkFieldForMove(x, y) || !this.inBounds(x, y)) throw new Error('Not valid move');
-            if (pf.cells[y][x].checker != null) throw new Error('Theres already another checker');
-            if (pf.cells[this.y][this.x].checker == null) throw new Error('Current cell is empty');
+            if (this.pf.cells[y][x].checker != null) throw new Error('Theres already another checker');
+            if (this.pf.cells[this.y][this.x].checker == null) throw new Error('Current cell is empty');
 
             let distance = this.y - y; // дистанция хода. Больше нуля - вверх, меньше - вниз
             if (distance == 0) throw new Error('0 distance move');
@@ -287,8 +308,9 @@
                 (!this.isQueen && distance == 1 && this.color != pf.bottomCheckersColor) // проверка на ход назад
             ) throw new Error('Cant go back if not a queen');
 
-            let oldCell = pf.cells[this.y][this.x];
-            let isCellEated = false; // была ли съедена шашка врага во время хода
+            let oldCell = pf.cells[this.y][this.x]; // клетка, на которой текущая шашка
+            let moveInfo = new MoveInfo(oldCell, cell); // информация о ходе
+
             if (Math.abs(distance) > 1){ // либо ходит дамка, либо кого то щас съедят, либо и то и то
                 let xSign = Math.sign(x - this.x); // получаем знаки для координатных осей
                 let ySign = Math.sign(y - this.y);
@@ -307,18 +329,10 @@
                 // если был ход на дистанцию 2, там не было что есть, а шашка не дамка
                 if (eatenCell == null && !this.isQueen) throw new Error('too far move for not-a-queen checker');
                 if(eatenCell){
-                    eatenCell.removeChecker(); // съедена
-                    isCellEated = true;
+                    moveInfo.cellEated = eatenCell;
                 }
             }
-
-            this.x = x;
-            this.y = y;
-            if (this.y == 0 || this.y == 7) this.isQueen = true;
-
-            oldCell.removeChecker();
-            cell.setChecker(this);
-            return isCellEated;
+            return moveInfo;
         }
     }
 

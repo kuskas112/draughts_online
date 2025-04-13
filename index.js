@@ -49,7 +49,11 @@ io.on('connection', (socket) => {
 
     socket.on('exitFromLobby', (name) => {
         console.log(`request to exit from ${name}`)
-        lobby.removePlayer(name);
+        try{
+            lobby.removePlayer(name);
+        } catch(ex){
+            console.error(ex.message);
+        }
         io.emit('setLobby', lobby.getPlayersUsernames(), lobby.hostPlayer);
     });
 
@@ -80,7 +84,7 @@ io.on('connection', (socket) => {
             lobby.addToPair(name);
             io.emit('setPairs', lobby.pairs);
 
-            if(lobby.isPairsFull()){
+            if(lobby.arePairsFull()){
                 io.emit('canStartGame', lobby.hostPlayer);
             }
         }
@@ -136,21 +140,13 @@ class Lobby{
     }
 
     getPlayerWithUsername(username){
-        for (let i = 0; i < this.players.length; i++) {
-            if(this.players[i].name === username){
-                return this.players[i];
-            }
-        }
+        let player = this.players.find(player => player.name === username)
+        if(player) return player;
         throw new Error('no such player');
     }
 
-    isPlayerIn(username){
-        for (let i = 0; i < this.players.length; i++) {
-            if(this.players[i].name == username){
-                return true;
-            }
-        }
-        return false;
+    isPlayerIn(username) {
+        return this.players.some(player => player.name === username);
     }
 
     getPlayersOpponent(username){
@@ -182,13 +178,8 @@ class Lobby{
         return this.players.length == 0;
     }
 
-    isPairsFull(){
-        for (let i = 0; i < this.pairs.length; i++) {
-            if(this.pairs[i].length < 2){
-                return false;
-            }
-        }
-        return true;
+    arePairsFull() {
+        return this.pairs.every(pair => pair.length === 2);
     }
 
     addToPair(username){
@@ -240,7 +231,7 @@ class Lobby{
 
     removePlayer(username) {
         if (username === undefined) throw new Error('undefined deleted player');
-        
+        if (!this.isPlayerIn(username)) throw new Error('no such player');
         // Фильтруем массив игроков, исключая игрока с указанным именем
         this.players = this.players.filter(player => player.name !== username);
         
