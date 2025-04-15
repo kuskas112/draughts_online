@@ -33,6 +33,10 @@
             this.bottomCheckersColor = bottomCheckersColor; // цвет шашек в нижней части, то есть каким цветом ходит игрок
             this.isCapturingObligation = true; // необходимость съесть шашку противника при возможности
             this.highlightedCells = null;       // подсвечиваемые клетки поля (находятся под угрозой съедения)
+            this.remainingCheckers = {
+                'white': 12,
+                'black': 12
+            };
         }
 
         setSocket(socket){
@@ -67,17 +71,18 @@
                 if(!cellEated) throw new Error('Required checker hasnt been eated');
                 this.highlightedCells.forEach(cell => cell.removeHighLight());
             }
+            this.highlightedCells = [];
 
             // совершение хода
             moveInfo.cellFrom.removeChecker();
             checkerFrom.x = cellTo.x;
             checkerFrom.y = cellTo.y;
             moveInfo.cellTo.setChecker(checkerFrom);
-            if (cellTo.y == 0 || cellTo.y == 7) checkerFrom.isQueen = true;
+            if (cellTo.y == 0 || cellTo.y == 7) checkerFrom.activateQueenMode();
 
-            this.highlightedCells = [];
             if(!cellEated) this.changeMove();
             else{
+                this.remainingCheckers[cellEated.checker.color]--;
                 cellEated.removeChecker();
                 this.highlightedCells = checkerFrom.checkForEatableCells();
                 // ход переходит только если больше нечего есть
@@ -95,6 +100,8 @@
             this.currentMove = this.currentMove == 'white' ? 'black' : 'white';
             // проход по ВСЕМ клеткам игрового поля и проверка на необходимость поедания
             // шашки противника
+            // заодно проверяется - остались ли у игрока возможные ходы
+            let isMovesRemaining = false;
             for(let y = 0; y < this.cells.length; y++){
                 for(let x = 0; x < this.cells.length; x++){
                     let cell = this.cells[y][x];
@@ -103,12 +110,14 @@
                     if(cell.checker.color != this.currentMove) continue;
                     let eatableCells = cell.checker.checkForEatableCells();
                     if(eatableCells.length > 0){
+                        isMovesRemaining = true;
                         eatableCells.forEach(innerCell => {
                             innerCell.highLightMe();
                             this.highlightedCells.push(innerCell);
                             // найденные кандидаты на съедение в массив highlightedCells
                         });
                     }
+                    //TODO: доделать проверку на возможность хода
                 }
             }
         }
@@ -333,6 +342,16 @@
                 }
             }
             return moveInfo;
+        }
+
+        activateQueenMode(){
+            this.isQueen = true;
+            this.tag.classList.add('checker-queen');
+        }
+
+        disableQueenMode(){
+            this.isQueen = false;
+            this.tag.classList.remove('checker-queen');
         }
     }
 
