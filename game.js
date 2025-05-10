@@ -1,7 +1,8 @@
 const CHECKER_BLACK_COLOR = 'b';
 const CHECKER_WHITE_COLOR = 'w';
 
-class PlayField{
+
+class SerializablePlayField{
     constructor() {
         this.currentMove = CHECKER_WHITE_COLOR;
         // Игровое поле 8 на 8, заполненное null-ами
@@ -93,4 +94,4 @@ class PlayField{
     }
 }
 
-module.exports = { PlayField, CHECKER_BLACK_COLOR, CHECKER_WHITE_COLOR };
+module.exports = { SerializablePlayField };
