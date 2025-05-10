@@ -62,6 +62,7 @@
         }
 
         // совершение хода и его обработка
+        // возвращает объект MoveInfo
         makeMove(checkerFrom, cellTo){
             // перед отправкой хода проверяем его валидность и делаем его
             let moveInfo = checkerFrom.goTo(cellTo);
@@ -95,6 +96,7 @@
                 }
                 
             }
+            return moveInfo;
         }
 
         changeMove(){
@@ -175,13 +177,18 @@
                     yFrom: this.pf.selectedChecker.y,
                     xTo: this.x,
                     yTo: this.y,
-                    checkerColor: this.pf.selectedChecker.color
+                    checkerColor: this.pf.selectedChecker.color,
+                    cellEated: null
                 };
 
                 try{
                     // игрок может ходить только одним цветом шашек
                     if(this.pf.selectedChecker.color != this.pf.bottomCheckersColor) throw new Error('Not your checker color');
-                    this.pf.makeMove(this.pf.selectedChecker, this);
+                    let moveInfo = this.pf.makeMove(this.pf.selectedChecker, this);
+                    
+                    if (moveInfo.cellEated !== null) {
+                        data.cellEated = [moveInfo.cellEated.x, moveInfo.cellEated.y];
+                    }
 
                     this.pf.socket.emit('move', data);
                     this.pf.selectedChecker = null;

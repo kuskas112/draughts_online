@@ -50,6 +50,9 @@ io.on('connection', (socket) => {
                 yTo = 7 - moveObj.yTo;
             }
             pf.makeMove(xFrom, yFrom, xTo, yTo);
+            if (moveObj.cellEated !== null) {
+                pf.removeChecker(moveObj.cellEated[0], moveObj.cellEated[1]);
+            }
             pf.printCheckersBoard();
         }
         catch(ex){
