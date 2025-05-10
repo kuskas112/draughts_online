@@ -1,3 +1,4 @@
+const { PlayField, Checker, Cell, MoveInfo } = require('./game.js');
 const express = require('express');
 const handlebars = require('express-handlebars');
 const socketIo = require('socket.io');
@@ -15,8 +16,6 @@ io.on('connection', (socket) => {
     console.log(`Новое подключение! ${socket.id}`);
     connections[socket.id] = socket;
     
-    
-
     socket.on('move', (moveObj) => {
         console.log(`move from ${moveObj.username} to [${moveObj.xTo}, ${moveObj.yTo}]`);
         console.table(moveObj);
@@ -98,8 +97,6 @@ io.on('connection', (socket) => {
         delete connections[socket.id];
     });
 });
-
-
 
 const host = 'localhost';
 const port = 7000;
@@ -252,6 +249,7 @@ class Lobby{
 
 const lobby = new Lobby();
 
+// ROOTS
 app.get('/', (req, res) => {
     if(req.cookies.username === undefined){
         res.redirect('/login');
