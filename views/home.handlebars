@@ -16,6 +16,7 @@
 </main>
 
 <script>
+
     // класс, объекты которого содержат информацию о совершенном ходе
     class MoveInfo{
         constructor(cellFrom, cellTo){
@@ -173,7 +174,8 @@
                     xFrom: this.pf.selectedChecker.x,
                     yFrom: this.pf.selectedChecker.y,
                     xTo: this.x,
-                    yTo: this.y
+                    yTo: this.y,
+                    checkerColor: this.pf.selectedChecker.color
                 };
 
                 try{
@@ -388,3 +390,4 @@
     });
     
 </script>
+

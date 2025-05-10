@@ -1,4 +1,4 @@
-const { PlayField, Checker, Cell, MoveInfo } = require('./game.js');
+const { PlayField, CHECKER_BLACK_COLOR, CHECKER_WHITE_COLOR } = require('./game.js');
 const express = require('express');
 const handlebars = require('express-handlebars');
 const socketIo = require('socket.io');
@@ -11,6 +11,7 @@ const app = express();
 const server = http.createServer(app);
 const io = socketIo(server);
 const connections = {};
+const pf = new PlayField();
 
 io.on('connection', (socket) => {
     console.log(`Новое подключение! ${socket.id}`);
@@ -18,8 +19,7 @@ io.on('connection', (socket) => {
     
     socket.on('move', (moveObj) => {
         console.log(`move from ${moveObj.username} to [${moveObj.xTo}, ${moveObj.yTo}]`);
-        console.table(moveObj);
-        try{
+        try {
             const opponent = lobby.getPlayersOpponent(moveObj.username);
             const opponentSocket = lobby.getPlayerWithUsername(opponent).socket;
 
@@ -32,10 +32,20 @@ io.on('connection', (socket) => {
                 yTo: 7 - moveObj.yTo,
             }
             opponentSocket.emit('move', opponentMoveObj);
+            let xFrom = moveObj.xFrom, yFrom = moveObj.yFrom, xTo = moveObj.xTo, yTo = moveObj.yTo;
+            if (moveObj.checkerColor === 'black'){
+                xFrom = 7 - moveObj.xFrom;
+                yFrom = 7 - moveObj.yFrom;
+                xTo = 7 - moveObj.xTo;
+                yTo = 7 - moveObj.yTo;
+            }
+            pf.makeMove(xFrom, yFrom, xTo, yTo);
+            pf.printCheckersBoard();
         }
-        catch(e){
-            console.error(e.message);
+        catch(ex){
+            console.error(ex.message);
         }
+
     });
 
     socket.on('getLobby', () => {
