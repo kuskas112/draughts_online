@@ -125,7 +125,7 @@
             }
         }
 
-        createGameField(numTable){
+        createGameField(numTable, playField){
             const tbody = document.getElementById('tbody' + numTable);
             for(var i = 0; i < 8; i++){
                 const row = document.createElement('tr');
@@ -136,12 +136,12 @@
                     td.style.backgroundColor = color;
 
                     var checker = null;
-                    if(color == 'black' && i != 3 && i != 4){
+                    let xPos = pf.bottomCheckersColor == 'white' ? j : 7 - j;
+                    let yPos = pf.bottomCheckersColor == 'white' ? i : 7 - i;
+                    if(playField[yPos][xPos] != null){
                         let shashka = document.createElement('div');
-
                         // checker init
-                        var checkerColor = this.bottomCheckersColor == 'black' ? 'white' : 'black';
-                        if(i > 4) checkerColor = this.bottomCheckersColor == 'black' ? 'black' : 'white';
+                        let checkerColor = playField[yPos][xPos] == 'b' ? 'black' : 'white';
                         checker = new Checker(shashka, checkerColor, j, i, this);
 
                         td.appendChild(shashka);
@@ -386,10 +386,17 @@
                     // если я второй в паре, то я хожу черными
                     pf.bottomCheckersColor = 'black';
                 }
-                pf.createGameField(1);
                 gameStarted = true;
             }
         });
+    });
+
+
+    socket.emit('getPlayField'); // получить игровое поле с сервера
+    socket.on('setPlayField', (playField) => {
+        console.table(playField.cells);
+        pf.currentMove = playField.currentMove == 'w' ? 'white' : 'black';
+        pf.createGameField(1, playField.cells);
     });
 
     socket.on('error', (message) => {

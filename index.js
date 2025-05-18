@@ -1,4 +1,4 @@
-const { SerializablePlayField } = require('./game.js');
+const { SerializablePlayField } = require('./SerializablePlayField.js');
 const { Lobby, Pair, Player } = require('./LobbyClasses.js');
 const express = require('express');
 const handlebars = require('express-handlebars');
@@ -8,6 +8,8 @@ const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const { param } = require('express/lib/request');
 const { monitorEventLoopDelay } = require('perf_hooks');
+
+
 const app = express();
 const server = http.createServer(app);
 const io = socketIo(server);
@@ -70,6 +72,12 @@ io.on('connection', (socket) => {
         io.emit('setPairs', serializablePairs);
     });
 
+    socket.on('getPlayField', () => {
+        const player = lobby.getPlayerBySocket(socket);
+        const pf = lobby.pairs.find(pair => pair.isIn(player.name)).playfield;
+        socket.emit('setPlayField', pf);
+    });
+
     socket.on('exitFromLobby', (name) => {
         console.log(`request to exit from ${name}`)
         try{
@@ -91,12 +99,6 @@ io.on('connection', (socket) => {
             console.log(`player ${username} requested to start game`);
             const player = lobby.getPlayerWithUsername(username);
             player.setSocket(socket);
-
-            lobby.pairs.forEach(pair => {
-                if(pair.isIn(username)){
-                    pair.setPlayfield(new SerializablePlayField());
-                }
-            });
             console.log(`player ${username} is ready to play`);
         }
         catch(e){
@@ -114,6 +116,7 @@ io.on('connection', (socket) => {
             io.emit('setPairs', lobby.pairs.map(pair => pair.players));
 
             if(lobby.arePairsFull()){
+                lobby.pairs.forEach(pair => pair.setPlayfield(new SerializablePlayField()));
                 io.emit('canStartGame', lobby.hostPlayer);
             }
         }
