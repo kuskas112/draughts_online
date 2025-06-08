@@ -1,5 +1,5 @@
-const CHECKER_BLACK_COLOR = 'black';
-const CHECKER_WHITE_COLOR = 'white';
+const CHECKER_BLACK_COLOR = 'b';
+const CHECKER_WHITE_COLOR = 'w';
 
 // класс, объекты которого содержат информацию о совершенном ходе
 class MoveInfo{
@@ -11,7 +11,7 @@ class MoveInfo{
 }
 
 class PlayField{
-    constructor(bottomCheckersColor = 'black'){
+    constructor(bottomCheckersColor = CHECKER_WHITE_COLOR){
         this.cells = [];                    // поля игровой доски
         this.currentMove = CHECKER_WHITE_COLOR;         // кто сейчас ходит
         this.bottomCheckersColor = bottomCheckersColor; // цвет шашек в нижней части, то есть каким цветом ходит игрок
@@ -61,7 +61,7 @@ class PlayField{
     }
 
     changeMove(){
-        this.currentMove = this.currentMove == 'white' ? 'black' : 'white';
+        this.currentMove = this.currentMove == CHECKER_WHITE_COLOR ? CHECKER_BLACK_COLOR : CHECKER_WHITE_COLOR;
         // проход по ВСЕМ клеткам игрового поля и проверка на необходимость поедания
         // шашки противника
         // заодно проверяется - остались ли у игрока возможные ходы
@@ -108,31 +108,24 @@ class PlayField{
         }
     }
 
-    createGameField(playField){
-        for(var i = 0; i < 8; i++){
-            this.cells.push([]);
-            for(var j = 0; j < 8; j++){
-                var checker = null;
-                let xPos = pf.bottomCheckersColor == 'white' ? j : 7 - j;
-                let yPos = pf.bottomCheckersColor == 'white' ? i : 7 - i;
-                if(playField[yPos][xPos] != null){
-                    // checker init
-                    let checkerColor = playField[yPos][xPos] == 'b' ? 'black' : 'white';
-                    checker = new Checker(checkerColor, j, i, this);
-                }
-                this.cells[i].push(new Cell(j, i, this, checker));
-            }
-        }
+    setChecker(x, y, color){
+        this.cells[y][x] = new Checker(color, x, y);
     }
 
+    removeChecker(x, y){
+        this.cells[y][x] = null;
+    }
+
+    //TODO: поле из SerializablePlayField
 }
 
 class Checker {
-    constructor(color, i, j){
-        if (!this.inBounds(j, i)) throw new Error('invalid checker coordinates');
+    constructor(color, x, y){
+        if (!this.inBounds(x, y)) throw new Error('invalid checker coordinates');
+        if (color != CHECKER_WHITE_COLOR && color != CHECKER_BLACK_COLOR) throw new Error('invalid checker color');
         this.color = color;
-        this.x = i;
-        this.y = j;
+        this.x = x;
+        this.y = y;
         this.isQueen = false;
     }
 
@@ -235,4 +228,4 @@ class Checker {
     }
 }
 
-export { PlayField, Checker };
+export { PlayField, Checker, CHECKER_BLACK_COLOR, CHECKER_WHITE_COLOR };
