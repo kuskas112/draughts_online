@@ -11,11 +11,10 @@ class MoveInfo{
 }
 
 class PlayField{
-    constructor(bottomCheckersColor = CHECKER_WHITE_COLOR){
-        this.cells = [];                    // поля игровой доски
-        this.currentMove = CHECKER_WHITE_COLOR;         // кто сейчас ходит
-        this.bottomCheckersColor = bottomCheckersColor; // цвет шашек в нижней части, то есть каким цветом ходит игрок
-        this.isCapturingObligation = true; // необходимость съесть шашку противника при возможности
+    constructor(){
+        this.cells = [];                        // поля игровой доски
+        this.currentMove = CHECKER_WHITE_COLOR; // кто сейчас ходит
+        this.isCapturingObligation = true;      // необходимость съесть шашку противника при возможности
         this.remainingCheckers = {
             'white': 12,
             'black': 12
@@ -173,15 +172,10 @@ class Checker {
     }
 
     // метод для перемещения шашки на другую клетку
-    // не проверяет цвет шашки, которой ходит игрок.
-    // Это делается в Cell.constructor
     // Возвращает объект moveInfo
-    goTo(cell, fieldCells){
-        let x = cell.x;
-        let y = cell.y;
-        
+    goTo(x, y, fieldCells){
         if(!this.checkFieldForMove(x, y) || !this.inBounds(x, y)) throw new Error('Not valid move');
-        if (fieldCells[y][x].checker != null) throw new Error('Theres already another checker');
+        if (fieldCells[y][x] != null) throw new Error('Theres already another checker');
         if (fieldCells[this.y][this.x] == null) throw new Error('Current cell is empty');
 
         let distance = this.y - y; // дистанция хода. Больше нуля - вверх, меньше - вниз
@@ -192,8 +186,7 @@ class Checker {
             (!this.isQueen && distance == 1 && this.color == CHECKER_BLACK_COLOR) // проверка на ход назад
         ) throw new Error('Cant go back if not a queen');
 
-        let oldCell = fieldCells[this.y][this.x]; // клетка, на которой текущая шашка
-        let moveInfo = new MoveInfo(oldCell, cell); // информация о ходе
+        let moveInfo = new MoveInfo({x:this.x, y:this.y}, {x: x, y: y}); // информация о ходе
 
         if (Math.abs(distance) > 1){ // либо ходит дамка, либо кого то щас съедят, либо и то и то
             let xSign = Math.sign(x - this.x); // получаем знаки для координатных осей
@@ -205,8 +198,8 @@ class Checker {
                 let newY = this.y + i * ySign;
 
                 let innerCell = fieldCells[newY][newX];
-                if (innerCell.checker == null) continue;
-                if (innerCell.checker.color == oldCell.checker.color) throw new Error('cant eat your checkers');
+                if (innerCell == null) continue;
+                if (innerCell.color == oldCell.color) throw new Error('cant eat your checkers');
                 if (eatenCell != null) throw new Error('cant eat more then 1 checker at a time');
                 eatenCell = innerCell;
             }
@@ -216,6 +209,8 @@ class Checker {
                 moveInfo.cellEated = eatenCell;
             }
         }
+        this.x = x;
+        this.y = y;
         return moveInfo;
     }
 
@@ -228,4 +223,4 @@ class Checker {
     }
 }
 
-export { PlayField, Checker, CHECKER_BLACK_COLOR, CHECKER_WHITE_COLOR };
+export { PlayField, Checker, CHECKER_BLACK_COLOR, CHECKER_WHITE_COLOR, MoveInfo };
