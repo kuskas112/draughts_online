@@ -94,4 +94,4 @@ class SerializablePlayField{
     }
 }
 
-module.exports = { SerializablePlayField };
+export { SerializablePlayField };

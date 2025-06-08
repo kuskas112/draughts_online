@@ -171,4 +171,4 @@ class Lobby{
     }
 };
 
-module.exports = { Lobby, Pair, Player };
+export { Lobby, Pair, Player };

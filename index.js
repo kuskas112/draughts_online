@@ -1,23 +1,27 @@
-const { SerializablePlayField } = require('./SerializablePlayField.js');
-const { Lobby, Pair, Player } = require('./LobbyClasses.js');
-const express = require('express');
-const handlebars = require('express-handlebars');
-const socketIo = require('socket.io');
-const http = require('http');
-const cookieParser = require('cookie-parser');
-const bodyParser = require('body-parser');
-const { param } = require('express/lib/request');
-const { monitorEventLoopDelay } = require('perf_hooks');
+import { SerializablePlayField } from './SerializablePlayField.js';
+import { Lobby, Pair, Player } from './LobbyClasses.js';
+import express from 'express';
+import handlebars from 'express-handlebars';
+import { Server } from 'socket.io';
+import http from 'http';
+import cookieParser from 'cookie-parser';
+import bodyParser from 'body-parser';
+import pkg from 'express/lib/request.js';
+const { param } = pkg;
+import { monitorEventLoopDelay } from 'perf_hooks';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const app = express();
 const server = http.createServer(app);
-const io = socketIo(server);
+const io = new Server(server);  // Изменено на new Server()
 const connections = {};
 const host = 'localhost';
 const port = 7000;
 const lobby = new Lobby();
-
 
 io.on('connection', (socket) => {
     console.log(`Новое подключение! ${socket.id}`);
