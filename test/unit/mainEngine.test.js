@@ -304,8 +304,55 @@ describe('Playfield Class Tests', () => {
         expect(pf.hasChecker(3, 4)).to.be.false;
         expect(pf.hasChecker(2, 5)).to.be.false;
         expect(pf.hasChecker(1, 6)).to.be.true;
+        expect(move.checkerEated).to.be.equal(opponentChecker);
         expect(pf.currentMove).to.be.equal(CHECKER_WHITE_COLOR);
         expect(pf.remainingCheckers[CHECKER_WHITE_COLOR]).to.be.equal(11);
+    });
+
+    it('Queen mode', () => {
+        const checker = new Checker(CHECKER_BLACK_COLOR, 2, 5);
+        const opponentChecker = new Checker(CHECKER_WHITE_COLOR, 1, 6);
+        pf.setChecker(checker);
+        pf.setChecker(opponentChecker);
+        pf.changeMove();
+
+        expect(pf.hasChecker(2, 5)).to.be.true;
+        expect(pf.hasChecker(1, 6)).to.be.true;
+        expect(pf.hasChecker(0, 7)).to.be.false;
+        expect(pf.currentMove).to.be.equal(CHECKER_BLACK_COLOR);
+
+        const cellFrom = {x: 2, y: 5};
+        const cellTo = {x: 0, y: 7};
+        let move = pf.makeMove(cellFrom, cellTo);
+
+        expect(pf.hasChecker(2, 5)).to.be.false;
+        expect(pf.hasChecker(1, 6)).to.be.false;
+        expect(pf.hasChecker(0, 7)).to.be.true;
+        expect(checker.isQueen).to.be.true;
+    });
+
+    it('Multiple eatable opponent checkers', () => {
+        pf.changeMove();
+        const checker = new Checker(CHECKER_BLACK_COLOR, 3, 2);
+        const opponentChecker = new Checker(CHECKER_WHITE_COLOR, 4, 3);
+        const opponentChecker2 = new Checker(CHECKER_WHITE_COLOR, 6, 5);
+        pf.setChecker(checker);
+        pf.setChecker(opponentChecker);
+        pf.setChecker(opponentChecker2);
+
+        //ход черных
+        expect(pf.currentMove).to.be.equal(CHECKER_BLACK_COLOR);
+
+        const cellFrom = {x: 3, y: 2};
+        const cellTo = {x: 5, y: 4};
+        let move = pf.makeMove(cellFrom, cellTo);
+
+        expect(pf.hasChecker(3, 2)).to.be.false;
+        expect(pf.hasChecker(4, 3)).to.be.false;
+        expect(pf.hasChecker(5, 4)).to.be.true;
+        expect(move.checkerEated).to.be.equal(opponentChecker);
+        // продолжаем ходить, можем еще съесть шашку на (6, 5)
+        expect(pf.currentMove).to.be.equal(CHECKER_BLACK_COLOR);
     });
 
 });
