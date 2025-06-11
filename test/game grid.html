@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Координатная сетка</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        
+        .chess-board {
+            display: grid;
+            grid-template-columns: repeat(8, 60px);
+            grid-template-rows: repeat(8, 60px);
+            border: 2px solid #333;
+        }
+        
+        .cell {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 20px;
+            font-weight: bold;
+        }
+        
+        .white {
+            background-color: #f0d9b5;
+        }
+        
+        .black {
+            background-color: #b58863;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="chess-board" id="chessBoard"></div>
+
+    <script>
+        const chessBoard = document.getElementById('chessBoard');
+        
+        for (let y = 0; y < 8; y++) {
+            for (let x = 0; x < 8; x++) {
+                const cell = document.createElement('div');
+                const isWhite = (x + y) % 2 === 0;
+                
+                cell.className = `cell ${isWhite ? 'white' : 'black'}`;
+                cell.textContent = `${x}${y}`;
+                
+                chessBoard.appendChild(cell);
+            }
+        }
+    </script>
+</body>
+</html>

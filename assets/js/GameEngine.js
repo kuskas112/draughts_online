@@ -6,72 +6,69 @@ class MoveInfo{
     constructor(cellFrom, cellTo){
         this.cellFrom = cellFrom;
         this.cellTo = cellTo;
-        this.cellEated = null; // клетка с шашкой, которую планируется съесть
+        this.checkerEated = null; // клетка с шашкой, которую планируется съесть
     }
 }
 
 class PlayField{
     constructor(){
-        this.cells = [];                        // поля игровой доски
+        this.cells = [];
+        this.initEmptyGameField();                        // поля игровой доски
         this.currentMove = CHECKER_WHITE_COLOR; // кто сейчас ходит
         this.isCapturingObligation = true;      // необходимость съесть шашку противника при возможности
         this.remainingCheckers = {
-            'white': 12,
-            'black': 12
+            [CHECKER_WHITE_COLOR]: 12,
+            [CHECKER_BLACK_COLOR]: 12
         };
     }
 
     // совершение хода и его обработка
     // возвращает объект MoveInfo
-    makeMove(checkerFrom, cellTo){
+    makeMove(cellFrom, cellTo){
         // перед отправкой хода проверяем его валидность и делаем его
-        let moveInfo = checkerFrom.goTo(cellTo);
-        let cellEated = moveInfo.cellEated;
+        let checkerFrom = this.cells[cellFrom.y][cellFrom.x];
+        if(!checkerFrom) throw new Error('From cell is empty');
+        if(checkerFrom.color != this.currentMove) throw new Error('It is not your turn');
 
-        if(this.highlightedCells != null && this.highlightedCells.length > 0){ 
-            // если были шашки противника под угрозой, но они не были съедены
-            if(!cellEated) throw new Error('Required checker hasnt been eated');
-            this.highlightedCells.forEach(cell => cell.removeHighLight());
-        }
-        this.highlightedCells = [];
+        let eatableCheckers = checkerFrom.checkForEatableCheckers(this.cells);
+
+        let moveInfo = checkerFrom.goTo(cellTo.x, cellTo.y, this.cells);
+        let checkerEated = moveInfo.checkerEated;
+        if(eatableCheckers.length > 0 && this.isCapturingObligation && !checkerEated) throw new Error('Required checker hasnt been eated');
 
         // совершение хода
-        moveInfo.cellFrom.removeChecker();
-        checkerFrom.x = cellTo.x;
-        checkerFrom.y = cellTo.y;
-        moveInfo.cellTo.setChecker(checkerFrom);
+        // после goTo в checkerFrom уже изменены координаты
+        this.setChecker(checkerFrom);
+        this.removeChecker(cellFrom.x, cellFrom.y);
+
         if (cellTo.y == 0 || cellTo.y == 7) checkerFrom.activateQueenMode();
 
-        if(!cellEated) this.changeMove();
+        if(!checkerEated) this.changeMove();
         else{
-            this.remainingCheckers[cellEated.checker.color]--;
-            cellEated.removeChecker();
-            this.highlightedCells = checkerFrom.checkForEatableCells();
+            this.remainingCheckers[checkerEated.color]--;
+            this.removeChecker(checkerEated.x, checkerEated.y);
             // ход переходит только если больше нечего есть
-            if(this.highlightedCells.length == 0) this.changeMove();
-            else{
-                this.highlightedCells.forEach(innerCell => {
-                    innerCell.highLightMe();
-                });
-            }
-            
+            let eatableCheckers = checkerFrom.checkForEatableCheckers(this.cells);
+            if(eatableCheckers.length == 0) this.changeMove();
         }
         return moveInfo;
     }
 
     changeMove(){
         this.currentMove = this.currentMove == CHECKER_WHITE_COLOR ? CHECKER_BLACK_COLOR : CHECKER_WHITE_COLOR;
+    }
+
+    checkForMultipleMoves(){
         // проход по ВСЕМ клеткам игрового поля и проверка на необходимость поедания
         // шашки противника
         // заодно проверяется - остались ли у игрока возможные ходы
         let isMovesRemaining = false;
         for(let y = 0; y < this.cells.length; y++){
             for(let x = 0; x < this.cells.length; x++){
-                let cell = this.cells[y][x];
-                if(cell == null) continue;
-                if(cell.checker == null) continue;
-                if(cell.checker.color != this.currentMove) continue;
-                let eatableCells = cell.checker.checkForEatableCells();
+                let checker = this.cells[y][x];
+                if(checker == null) continue;
+                if(checker.color != this.currentMove) continue;
+                let eatableCells = checker.checkForEatableCells();
                 if(eatableCells.length > 0){
                     isMovesRemaining = true;
                     eatableCells.forEach(innerCell => {
@@ -83,32 +80,53 @@ class PlayField{
                 //TODO: доделать проверку на возможность хода
             }
         }
+        return isMovesRemaining;
     }
 
-    
-    initGameField(){
-        this.currentMove = CHECKER_WHITE_COLOR;
+    initEmptyGameField(){
         // Игровое поле 8 на 8, заполненное null-ами
         this.cells = new Array(8).fill(null).map(() => new Array(8).fill(null));
+    }
 
+    initGameField(){
+        this.currentMove = CHECKER_WHITE_COLOR;
+        this.initEmptyGameField();
         const CHECKER_BLACK_ROW = [0, 1, 2];
         const CHECKER_WHITE_ROW = [5, 6, 7];
 
         for (let y of CHECKER_BLACK_ROW) {
             for (let x = ((y+1) % 2); x < 8; x += 2) {
-                this.setChecker(x, y, CHECKER_BLACK_COLOR);
+                this.setChecker(new Checker(CHECKER_BLACK_COLOR, x, y));
             }
         }
 
         for (let y of CHECKER_WHITE_ROW) {
             for (let x = ((y+1) % 2); x < 8; x += 2) {
-                this.setChecker(x, y, CHECKER_WHITE_COLOR);
+                this.setChecker(new Checker(CHECKER_WHITE_COLOR, x, y));
             }
         }
     }
 
-    setChecker(x, y, color){
-        this.cells[y][x] = new Checker(color, x, y);
+    hasChecker(x, y){
+        if (x < 0 || y < 0 || x >= 8 || y >= 8) throw new Error('Checker coordinates are out of bounds');
+        if (this.cells[y][x] != null){
+            if (!this.cells[y][x] instanceof Checker) throw new Error('Checker cell is not a checker');
+            let checker = this.cells[y][x];
+            if (checker.x != x || checker.y != y) throw new Error('Checker has wrong coordinates');
+            return true;
+        }
+        return false;
+    }
+
+    getChecker(x, y){
+        return this.cells[y][x];
+    }
+
+    setChecker(checker){
+        if (!(checker instanceof Checker)) {
+            throw new Error('setChecker argument must be instance of Checker');
+        }
+        this.cells[checker.y][checker.x] = checker;
     }
 
     removeChecker(x, y){
@@ -120,6 +138,7 @@ class PlayField{
 
 class Checker {
     constructor(color, x, y){
+        if(!this.isCellBlack(x, y)) throw new Error('invalid checker cell');
         if (!this.inBounds(x, y)) throw new Error('invalid checker coordinates');
         if (color != CHECKER_WHITE_COLOR && color != CHECKER_BLACK_COLOR) throw new Error('invalid checker color');
         this.color = color;
@@ -128,9 +147,13 @@ class Checker {
         this.isQueen = false;
     }
 
-    // Лежит ли поле на одной диагонали с шашкой и черное ли оно
-    checkFieldForMove(x, y){
-        return Math.abs(x - this.x) === Math.abs(y - this.y) && (x + y) % 2 != 0;
+    // Лежит ли клетка на одной диагонали с шашкой и черное ли оно
+    checkCellForMove(x, y){
+        return Math.abs(x - this.x) === Math.abs(y - this.y) && this.isCellBlack(x, y);
+    }
+
+    isCellBlack(x, y){
+        return (x + y) % 2 != 0;
     }
 
     inBounds(x, y){
@@ -171,10 +194,12 @@ class Checker {
         return eatableCheckers;
     }
 
-    // метод для перемещения шашки на другую клетку
+    // Метод для перемещения шашки на другую клетку
+    // Не изменяет fieldCells, только возвращает информацию о ходе.
+    // Изменяет поля this.x, this.y
     // Возвращает объект moveInfo
     goTo(x, y, fieldCells){
-        if(!this.checkFieldForMove(x, y) || !this.inBounds(x, y)) throw new Error('Not valid move');
+        if(!this.checkCellForMove(x, y) || !this.inBounds(x, y)) throw new Error('Not valid move');
         if (fieldCells[y][x] != null) throw new Error('Theres already another checker');
         if (fieldCells[this.y][this.x] == null) throw new Error('Current cell is empty');
 
@@ -199,19 +224,23 @@ class Checker {
 
                 let innerCell = fieldCells[newY][newX];
                 if (innerCell == null) continue;
-                if (innerCell.color == oldCell.color) throw new Error('cant eat your checkers');
+                if (innerCell.color == this.color) throw new Error('cant eat your checkers');
                 if (eatenCell != null) throw new Error('cant eat more then 1 checker at a time');
                 eatenCell = innerCell;
             }
             // если был ход на дистанцию 2, там не было что есть, а шашка не дамка
             if (eatenCell == null && !this.isQueen) throw new Error('too far move for not-a-queen checker');
             if(eatenCell){
-                moveInfo.cellEated = eatenCell;
+                moveInfo.checkerEated = eatenCell;
             }
         }
         this.x = x;
         this.y = y;
         return moveInfo;
+    }
+
+    hasCoordinates(x, y){
+        return this.x == x && this.y == y;
     }
 
     activateQueenMode(){

@@ -8,11 +8,15 @@ function createEmptyGameGrid(){
 
 describe('Checker Class Tests', () => {
     it('Checker invalid color', () => {
-        expect(() => {let checker = new Checker('hghjg', 0, 1);}).to.throw('invalid checker color');
+        expect(() => {let checker = new Checker('hghjg', 0, 1);}).to.throw(Error);
+    });
+    
+    it('Checker invalid cell', () => {
+        expect(() => {let checker = new Checker(CHECKER_WHITE_COLOR, 0, 0);}).to.throw(Error);
     });
 
     it('Checker not in bounds', () => {
-        expect(() => {let checker = new Checker('black', 14, 1);}).to.throw('invalid checker coordinates');
+        expect(() => {let checker = new Checker(CHECKER_BLACK_COLOR, 14, 1);}).to.throw(Error);
     });
 
     it('Eatable cells test', () => {
@@ -117,6 +121,114 @@ describe('Checker Class Tests', () => {
                      checker.x == 5 && checker.y == 6; 
         expect(result).to.be.true;
     });
+
+    it('Goto function - another checker in the way', () => {
+        let grid = createEmptyGameGrid();
+        let checker = new Checker(CHECKER_WHITE_COLOR, 3, 4);
+        grid[4][3] = checker;
+
+        let opponentChecker = new Checker(CHECKER_BLACK_COLOR, 4, 3);
+        grid[3][4] = opponentChecker;
+
+        expect(() => {checker.goTo(4, 3, grid)}).to.throw(Error);
+    });
+
+    it('Goto function - cell eated', () => {
+        let grid = createEmptyGameGrid();
+        let checker = new Checker(CHECKER_WHITE_COLOR, 3, 4);
+        grid[4][3] = checker;
+
+        let opponentChecker = new Checker(CHECKER_BLACK_COLOR, 4, 3);
+        grid[3][4] = opponentChecker;
+
+        let moveInfo = checker.goTo(5, 2, grid);
+        let fromCell = moveInfo.cellFrom;
+        let resultCell = moveInfo.cellTo;
+        let eatedCell = moveInfo.checkerEated;
+
+        expect(eatedCell).to.be.equal(opponentChecker);
+        expect(fromCell.y == 4 && fromCell.x == 3 && resultCell.y == 2 && resultCell.x == 5).to.be.true;
+        expect(checker.x == 5 && checker.y == 2).to.be.true;
+    });
+
+    it('Goto function - same color cell eated', () => {
+        let grid = createEmptyGameGrid();
+        let checker = new Checker(CHECKER_WHITE_COLOR, 3, 4);
+        grid[4][3] = checker;
+
+        let opponentChecker = new Checker(CHECKER_WHITE_COLOR, 4, 3);
+        grid[3][4] = opponentChecker;
+
+        expect(() => {checker.goTo(5, 2, grid)}).to.throw(Error);
+    });
+
+    it('Goto function - cell eated, but too far move', () => {
+        let grid = createEmptyGameGrid();
+        let checker = new Checker(CHECKER_WHITE_COLOR, 3, 4);
+        grid[4][3] = checker;
+
+        let opponentChecker = new Checker(CHECKER_BLACK_COLOR, 4, 3);
+        grid[3][4] = opponentChecker;
+
+        expect(() => {checker.goTo(6, 1, grid)}).to.throw(Error);
+    });
+
+    it('Goto function - cell eated, but too far move, but queen', () => {
+        let grid = createEmptyGameGrid();
+        let checker = new Checker(CHECKER_WHITE_COLOR, 3, 4);
+        checker.activateQueenMode();
+        grid[4][3] = checker;
+
+        let opponentChecker = new Checker(CHECKER_BLACK_COLOR, 4, 3);
+        grid[3][4] = opponentChecker;
+
+        let moveInfo = checker.goTo(6, 1, grid);
+        let fromCell = moveInfo.cellFrom;
+        let resultCell = moveInfo.cellTo;
+        let eatedCell = moveInfo.checkerEated;
+
+        expect(eatedCell).to.be.equal(opponentChecker);
+        expect(fromCell.y == 4 && fromCell.x == 3 && resultCell.y == 1 && resultCell.x == 6).to.be.true;
+        expect(checker.x == 6 && checker.y == 1).to.be.true;
+    });
+
+    it('Goto function - many checkers eated', () => {
+        let grid = createEmptyGameGrid();
+        let checker = new Checker(CHECKER_WHITE_COLOR, 3, 4);
+        checker.activateQueenMode();
+        grid[4][3] = checker;
+
+        let opponentChecker = new Checker(CHECKER_BLACK_COLOR, 4, 3);
+        grid[3][4] = opponentChecker;
+
+        let secondOpponentChecker = new Checker(CHECKER_BLACK_COLOR, 5, 2);
+        grid[2][5] = secondOpponentChecker;
+
+        expect(() => {checker.goTo(7, 0, grid)}).to.throw(Error);
+    });
+
+    it('Goto function - far eated cell', () => {
+        let grid = createEmptyGameGrid();
+        let checker = new Checker(CHECKER_WHITE_COLOR, 3, 4);
+        checker.activateQueenMode();
+        grid[4][3] = checker;
+
+        let opponentChecker = new Checker(CHECKER_BLACK_COLOR, 5, 2);
+        grid[2][5] = opponentChecker;
+
+        let moveInfo = checker.goTo(7, 0, grid);
+        let fromCell = moveInfo.cellFrom;
+        let resultCell = moveInfo.cellTo;
+        let eatedCell = moveInfo.checkerEated;
+
+        expect(eatedCell).to.be.equal(opponentChecker);
+        expect(fromCell.y == 4 && fromCell.x == 3 && resultCell.y == 0 && resultCell.x == 7).to.be.true;
+        expect(checker.x == 7 && checker.y == 0).to.be.true;
+    });
+
+    // TODO: тест на то, когда за съедобным противником кончается поле
+    // TODO: тест на то, когда за съедобным противником другой противник
+
 });
 
 describe('Playfield Class Tests', () => {
@@ -145,6 +257,55 @@ describe('Playfield Class Tests', () => {
 
         pf.initGameField();
         expect(pf.cells).to.be.deep.equal(expectedGrid);
+    });
+
+    it('HasChecker function', () => {
+        pf.initGameField();
+        expect(pf.hasChecker(0, 7)).to.be.true;
+        expect(pf.hasChecker(3, 4)).to.be.false;
+        expect(() => {pf.hasChecker(-1, 10)}).to.throw(Error);
+    });
+
+    it('Simple Move', () => {
+        pf.initGameField();
+        //0,5 - 1,4
+        expect(pf.hasChecker(0, 5)).to.be.true;
+        expect(pf.hasChecker(1, 4)).to.be.false;
+        expect(pf.currentMove).to.be.equal(CHECKER_WHITE_COLOR);
+
+        const cellFrom = {x: 0, y: 5};
+        const cellTo = {x: 1, y: 4};
+        pf.makeMove(cellFrom, cellTo);
+
+        expect(pf.hasChecker(0, 5)).to.be.false;
+        expect(pf.hasChecker(1, 4)).to.be.true;
+        expect(pf.currentMove).to.be.equal(CHECKER_BLACK_COLOR);
+    });
+
+    it('Eating move', () => {
+        expect(pf.hasChecker(2, 5)).to.be.false;
+        expect(pf.hasChecker(3, 4)).to.be.false;
+        expect(pf.remainingCheckers[CHECKER_WHITE_COLOR]).to.be.equal(12);
+        pf.changeMove();
+
+        const checker = new Checker(CHECKER_BLACK_COLOR, 3, 4);
+        const opponentChecker = new Checker(CHECKER_WHITE_COLOR, 2, 5);
+        pf.setChecker(checker);
+        pf.setChecker(opponentChecker);
+
+        expect(pf.hasChecker(2, 5)).to.be.true;
+        expect(pf.hasChecker(3, 4)).to.be.true;
+        expect(pf.currentMove).to.be.equal(CHECKER_BLACK_COLOR);
+
+        const cellFrom = {x: 3, y: 4};
+        const cellTo = {x: 1, y: 6};
+        let move = pf.makeMove(cellFrom, cellTo);
+
+        expect(pf.hasChecker(3, 4)).to.be.false;
+        expect(pf.hasChecker(2, 5)).to.be.false;
+        expect(pf.hasChecker(1, 6)).to.be.true;
+        expect(pf.currentMove).to.be.equal(CHECKER_WHITE_COLOR);
+        expect(pf.remainingCheckers[CHECKER_WHITE_COLOR]).to.be.equal(11);
     });
 
 });
