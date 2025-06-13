@@ -9,6 +9,7 @@ class Player{
         this.socket = socket;
     }
 }
+
 class Pair{
     constructor(){
         this.players = [];
@@ -44,7 +45,7 @@ class Pair{
     }
 
     isFull(){
-        return this.players.length == 2;
+        return this.players.length >= 2;
     }
 }
 

@@ -1,5 +1,5 @@
 import { SerializablePlayField } from './SerializablePlayField.js';
-import { Lobby, Pair, Player } from './LobbyClasses.js';
+import { Lobby, Pair, Player } from './assets/js/LobbyClasses.js';
 import express from 'express';
 import handlebars from 'express-handlebars';
 import { Server } from 'socket.io';
@@ -8,9 +8,9 @@ import cookieParser from 'cookie-parser';
 import bodyParser from 'body-parser';
 import pkg from 'express/lib/request.js';
 const { param } = pkg;
-import { monitorEventLoopDelay } from 'perf_hooks';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
+import { pathToFileURL } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -207,6 +207,14 @@ app.get('/exit', (req, res) => {
     res.redirect('/');
 });
 
-server.listen(port, host, () => {
-    console.log(`Сервак пашет на http://${host}:${port}`);
-});
+
+// Проверка, запущен ли файл напрямую (а не импортирован)
+const isMainModule = import.meta.url === pathToFileURL(process.argv[1]).href;
+
+if (isMainModule) {
+    server.listen(port, host, () => {
+        console.log(`Сервак пашет на http://${host}:${port}`);
+    });
+}
+
+export { app };

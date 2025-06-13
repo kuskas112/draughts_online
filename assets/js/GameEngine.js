@@ -1,5 +1,8 @@
 const CHECKER_BLACK_COLOR = 'b';
 const CHECKER_WHITE_COLOR = 'w';
+import 'reflect-metadata';
+import { plainToInstance } from 'class-transformer';
+
 
 // класс, объекты которого содержат информацию о совершенном ходе
 class MoveInfo{
@@ -57,32 +60,7 @@ class PlayField{
     changeMove(){
         this.currentMove = this.currentMove == CHECKER_WHITE_COLOR ? CHECKER_BLACK_COLOR : CHECKER_WHITE_COLOR;
     }
-
-    checkForMultipleMoves(){
-        // проход по ВСЕМ клеткам игрового поля и проверка на необходимость поедания
-        // шашки противника
-        // заодно проверяется - остались ли у игрока возможные ходы
-        let isMovesRemaining = false;
-        for(let y = 0; y < this.cells.length; y++){
-            for(let x = 0; x < this.cells.length; x++){
-                let checker = this.cells[y][x];
-                if(checker == null) continue;
-                if(checker.color != this.currentMove) continue;
-                let eatableCells = checker.checkForEatableCells();
-                if(eatableCells.length > 0){
-                    isMovesRemaining = true;
-                    eatableCells.forEach(innerCell => {
-                        innerCell.highLightMe();
-                        this.highlightedCells.push(innerCell);
-                        // найденные кандидаты на съедение в массив highlightedCells
-                    });
-                }
-                //TODO: доделать проверку на возможность хода
-            }
-        }
-        return isMovesRemaining;
-    }
-
+    
     initEmptyGameField(){
         // Игровое поле 8 на 8, заполненное null-ами
         this.cells = new Array(8).fill(null).map(() => new Array(8).fill(null));
@@ -110,7 +88,7 @@ class PlayField{
     hasChecker(x, y){
         if (x < 0 || y < 0 || x >= 8 || y >= 8) throw new Error('Checker coordinates are out of bounds');
         if (this.cells[y][x] != null){
-            if (!this.cells[y][x] instanceof Checker) throw new Error('Checker cell is not a checker');
+            if (!(this.cells[y][x] instanceof Checker)) throw new Error('Checker cell is not a checker');
             let checker = this.cells[y][x];
             if (checker.x != x || checker.y != y) throw new Error('Checker has wrong coordinates');
             return true;
@@ -133,18 +111,100 @@ class PlayField{
         this.cells[y][x] = null;
     }
 
-    //TODO: поле из SerializablePlayField
+    // Prints the current state of the checkers board to the console.
+    printPlayField() {
+        const cells = this.cells;
+        // Стили для консоли
+        const styles = {
+            black: 'color: white; background: black; padding: 2px 5px; border-radius: 3px;',
+            white: 'color: black; background: white; padding: 2px 5px; border-radius: 3px; border: 1px solid #ccc;',
+            empty: 'color: #999; background: #f0f0f0; padding: 2px 5px;',
+            border: 'color: #333; font-weight: bold;'
+        };
+        
+        // Верхняя граница таблицы
+        console.log('%c   ┌───┬───┬───┬───┬───┬───┬───┬────┐', styles.border);
+        
+        // Проходим по каждой строке
+        cells.forEach((row, rowIndex) => {
+            let rowStr = '%c ' + (rowIndex) + ' │';
+            
+            // Проходим по каждой клетке в строке
+            row.forEach((cell, colIndex) => {
+            if (cell === null){
+                rowStr += `%c · ${colIndex === row.length - 1 ? '' : '│'}`;
+            } else if (cell.color === CHECKER_BLACK_COLOR) {
+                rowStr += `%c ♔ ${colIndex === row.length - 1 ? '' : '│'}`;
+            } else if (cell.color === CHECKER_WHITE_COLOR) {
+                rowStr += `%c ♚ ${colIndex === row.length - 1 ? '' : '│'}`;
+            } 
+            });
+        
+            rowStr += '%c │';
+            
+            // Собираем аргументы для console.log
+            const args = [rowStr, styles.border];
+            row.forEach(cell => {
+            if (cell === null){
+                args.push(styles.empty);
+            } else if (cell.color === CHECKER_BLACK_COLOR) {
+                args.push(styles.black);
+            } else if (cell.color === CHECKER_WHITE_COLOR) {
+                args.push(styles.white);
+            } 
+            });
+            args.push(styles.border);
+            
+            console.log.apply(console, args);
+        
+            // Горизонтальные разделители (кроме последней строки)
+            if (rowIndex < cells.length - 1) {
+                console.log('%c   ├───┼───┼───┼───┼───┼───┼───┼────┤', styles.border);
+            }
+        });
+        
+        // Нижняя граница таблицы
+        console.log('%c   └───┴───┴───┴───┴───┴───┴───┴────┘', styles.border);
+    }
+
+    jsonify(){
+        return JSON.stringify(this);
+    }
+
+    static fromJSON(jsonString){
+        const data = JSON.parse(jsonString);
+        const pf = plainToInstance(PlayField, data); 
+        for (let i = 0; i < pf.cells.length; i++) {
+            for (let j = 0; j < pf.cells.length; j++) {
+                if(pf.cells[i][j] != null){
+                    pf.setChecker(Checker.fromPlain(pf.cells[i][j]));
+                }
+            } 
+        } 
+        return pf;
+    }
+    
 }
 
 class Checker {
     constructor(color, x, y){
         if(!this.isCellBlack(x, y)) throw new Error('invalid checker cell');
-        if (!this.inBounds(x, y)) throw new Error('invalid checker coordinates');
+        if (!this.inBounds(x, y)) throw new Error(`invalid checker coordinates ${x}, ${y}`);
         if (color != CHECKER_WHITE_COLOR && color != CHECKER_BLACK_COLOR) throw new Error('invalid checker color');
         this.color = color;
         this.x = x;
         this.y = y;
         this.isQueen = false;
+    }
+
+    static fromPlain(plain){
+        const color = plain.color;
+        const x = plain.x;
+        const y = plain.y;
+        const isQueen = plain.isQueen;
+        const checker = new Checker(color, x, y);
+        checker.isQueen = isQueen;
+        return checker;
     }
 
     // Лежит ли клетка на одной диагонали с шашкой и черное ли оно

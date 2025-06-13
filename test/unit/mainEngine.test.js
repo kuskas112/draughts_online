@@ -226,9 +226,19 @@ describe('Checker Class Tests', () => {
         expect(checker.x == 7 && checker.y == 0).to.be.true;
     });
 
-    // TODO: тест на то, когда за съедобным противником кончается поле
-    // TODO: тест на то, когда за съедобным противником другой противник
+    it('Goto function - cell eated, but other checker there', () => {
+        let grid = createEmptyGameGrid();
+        let checker = new Checker(CHECKER_WHITE_COLOR, 3, 4);
+        grid[4][3] = checker;
 
+        let opponentChecker = new Checker(CHECKER_BLACK_COLOR, 4, 3);
+        grid[3][4] = opponentChecker;
+        let opponentChecker2 = new Checker(CHECKER_BLACK_COLOR, 5, 2);
+        grid[2][5] = opponentChecker2;
+
+        expect(() => {checker.goTo(5, 2, grid)}).to.throw(Error);
+    });
+    
 });
 
 describe('Playfield Class Tests', () => {
@@ -353,6 +363,25 @@ describe('Playfield Class Tests', () => {
         expect(move.checkerEated).to.be.equal(opponentChecker);
         // продолжаем ходить, можем еще съесть шашку на (6, 5)
         expect(pf.currentMove).to.be.equal(CHECKER_BLACK_COLOR);
+    });
+
+    it('Serialization test', () => {
+        pf.changeMove();
+        const checker = new Checker(CHECKER_BLACK_COLOR, 3, 2);
+        const opponentChecker = new Checker(CHECKER_WHITE_COLOR, 4, 3);
+        const opponentChecker2 = new Checker(CHECKER_WHITE_COLOR, 6, 5);
+        pf.setChecker(checker);
+        pf.setChecker(opponentChecker);
+        pf.setChecker(opponentChecker2);
+
+        let jsonString = pf.jsonify();
+        let pf2 = PlayField.fromJSON(jsonString);
+        expect(pf2).to.be.deep.equal(pf);
+        expect(pf2.hasChecker(3,2)).to.be.true;
+        expect(pf2.hasChecker(4,3)).to.be.true;
+        expect(pf2.hasChecker(6,5)).to.be.true;
+        expect(pf2.currentMove).to.be.equal(CHECKER_BLACK_COLOR);
+
     });
 
 });
