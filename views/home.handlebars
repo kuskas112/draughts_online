@@ -15,10 +15,8 @@
     <a href="/exit">Выйти</a>
 </main>
 
-<script type="module">
+<script>
     const me = document.getElementById('me').innerText;
-    let pf;
-    
     const socket = io();
     var gameStarted = false;
     socket.emit('startingGame', me); // запрос на привязку текущего сокета к игроку для обработки мультиплеерных запросов
@@ -45,6 +43,8 @@
     socket.emit('getPlayField'); // получить игровое поле с сервера
     socket.on('setPlayField', (playField) => {
         console.log(playField);
+        let data = JSON.parse(playField);
+        createGameFieldFromServer(1, data);
         //pf.currentMove = playField.currentMove == 'w' ? 'white' : 'black';
         //pf.createGameField(1, playField.cells);
     });
@@ -52,6 +52,31 @@
     socket.on('error', (message) => {
         confirm(`Ошибка: ${message}`);
     });
+
+    function createGameFieldFromServer(numTable, data){
+        let cells = data.cells;
+        const tbody = document.getElementById('tbody' + numTable);
+        for(var i = 0; i < 8; i++){
+            const row = document.createElement('tr');
+            for(var j = 0; j < 8; j++){
+                var color = (j + i) % 2 == 0 ? 'white' : 'black';
+                var td = document.createElement('td');
+                td.style.backgroundColor = color;
+                let cell = cells[i][j];
+
+                if(cell){
+                    let checker = document.createElement('div');
+                    let colorClass = cell.color == 'w' ? 'checker-white' : 'checker-black';
+                    checker.classList.add('checker', colorClass);
+                    td.appendChild(checker);
+                    console.log(`i,j = ${i}, ${j}; x,y = ${cell.x}, ${cell.y}, color=${cell.color}`);
+                }
+
+                row.appendChild(td);
+            }
+            tbody.appendChild(row);
+        }
+    }
     
 </script>
 

@@ -23,8 +23,19 @@ class PlayField{
         };
     }
 
-    // совершение хода и его обработка
-    // возвращает объект MoveInfo
+    
+    /**
+     * Cовершение хода и его обработка
+     * Возвращает объект MoveInfo
+     * @param {Object} cellFrom - The starting position of the move.
+     * @param {number} cellFrom.x - The x-coordinate of the starting position.
+     * @param {number} cellFrom.y - The y-coordinate of the starting position.
+     * @param {Object} cellTo - The destination position of the move.
+     * @param {number} cellTo.x - The x-coordinate of the destination position.
+     * @param {number} cellTo.y - The y-coordinate of the destination position.
+     * @returns {MoveInfo} Information about the move.
+     * @throws Will throw an error if the move is invalid.
+     */
     makeMove(cellFrom, cellTo){
         // перед отправкой хода проверяем его валидность и делаем его
         let checkerFrom = this.cells[cellFrom.y][cellFrom.x];

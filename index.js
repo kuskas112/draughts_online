@@ -1,4 +1,3 @@
-import { SerializablePlayField } from './SerializablePlayField.js';
 import { Lobby, Pair, Player } from './assets/js/LobbyClasses.js';
 import express from 'express';
 import handlebars from 'express-handlebars';
@@ -11,6 +10,7 @@ const { param } = pkg;
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import { pathToFileURL } from 'url';
+import { PlayField } from './assets/js/GameEngine.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -44,7 +44,7 @@ io.on('connection', (socket) => {
             opponentSocket.emit('move', opponentMoveObj);
 
             // Поиск пары с ходящим игроком,
-            // совершение хода в SerializablePlayField на сервере, для сохранения
+            // совершение хода в PlayField на сервере, для сохранения
             // игровой ситуации после перезагрузки
             const pf = lobby.pairs.find(pair => pair.isIn(moveObj.username)).playfield;
             let xFrom = moveObj.xFrom, yFrom = moveObj.yFrom, xTo = moveObj.xTo, yTo = moveObj.yTo;
@@ -55,11 +55,9 @@ io.on('connection', (socket) => {
                 xTo = 7 - moveObj.xTo;
                 yTo = 7 - moveObj.yTo;
             }
-            pf.makeMove(xFrom, yFrom, xTo, yTo);
-            if (moveObj.cellEated !== null) {
-                pf.removeChecker(moveObj.cellEated[0], moveObj.cellEated[1]);
-            }
-            pf.printCheckersBoard();
+            let cellFrom = {x: xFrom, y: yFrom}, cellTo = {x: xTo, y: yTo};
+            pf.makeMove(cellFrom, cellTo)
+            pf.printPlayField();
         }
         catch(ex){
             console.error(ex.message);
@@ -79,7 +77,7 @@ io.on('connection', (socket) => {
     socket.on('getPlayField', () => {
         const player = lobby.getPlayerBySocket(socket);
         const pf = lobby.pairs.find(pair => pair.isIn(player.name)).playfield;
-        socket.emit('setPlayField', pf);
+        socket.emit('setPlayField', pf.jsonify());
     });
 
     socket.on('exitFromLobby', (name) => {
@@ -120,7 +118,9 @@ io.on('connection', (socket) => {
             io.emit('setPairs', lobby.pairs.map(pair => pair.players));
 
             if(lobby.arePairsFull()){
-                lobby.pairs.forEach(pair => pair.setPlayfield(new SerializablePlayField()));
+                let pf = new PlayField();
+                pf.initGameField();
+                lobby.pairs.forEach(pair => pair.setPlayfield(pf));
                 io.emit('canStartGame', lobby.hostPlayer);
             }
         }
