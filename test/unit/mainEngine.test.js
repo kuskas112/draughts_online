@@ -353,8 +353,8 @@ describe('Playfield Class Tests', () => {
         //ход черных
         expect(pf.currentMove).to.be.equal(CHECKER_BLACK_COLOR);
 
-        const cellFrom = {x: 3, y: 2};
-        const cellTo = {x: 5, y: 4};
+        let cellFrom = {x: 3, y: 2};
+        let cellTo = {x: 5, y: 4};
         let move = pf.makeMove(cellFrom, cellTo);
 
         expect(pf.hasChecker(3, 2)).to.be.false;
@@ -363,6 +363,14 @@ describe('Playfield Class Tests', () => {
         expect(move.checkerEated).to.be.equal(opponentChecker);
         // продолжаем ходить, можем еще съесть шашку на (6, 5)
         expect(pf.currentMove).to.be.equal(CHECKER_BLACK_COLOR);
+
+        cellFrom = {x: 5, y: 4};
+        cellTo = {x: 7, y: 6};
+        move = pf.makeMove(cellFrom, cellTo);
+
+        //а вот теперь ход белых
+        expect(pf.currentMove).to.be.equal(CHECKER_WHITE_COLOR);
+
     });
 
     it('Serialization test', () => {

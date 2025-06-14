@@ -1,8 +1,6 @@
-const CHECKER_BLACK_COLOR = 'b';
-const CHECKER_WHITE_COLOR = 'w';
 import 'reflect-metadata';
 import { plainToInstance } from 'class-transformer';
-
+import { CHECKER_BLACK_COLOR, CHECKER_WHITE_COLOR } from './Constraints.js';
 
 // класс, объекты которого содержат информацию о совершенном ходе
 class MoveInfo{

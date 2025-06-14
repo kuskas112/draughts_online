@@ -169,7 +169,7 @@ app.get('/game', (req, res) => {
     let params = {
         username: req.cookies.username
     }
-    res.render('home', {username: req.cookies.username});
+    res.render('home', params);
 });
 
 app.get('/login', (req, res) => {
