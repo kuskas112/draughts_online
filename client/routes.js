@@ -1,14 +1,21 @@
 // src/router/index.js
 import { createRouter, createWebHistory } from 'vue-router'
-import ExampleComponent from './components/ExampleComponent.vue'
 import NotFound from './components/NotFound.vue'
+import Game from './components/Game.vue'
+import Login from './components/Login.vue'
+
 
 // 1. Определяем массив маршрутов (routes)
 const routes = [
   {
-    path: '/kek',        // URL в браузере
-    name: 'Home',     // Имя маршрута для удобства
-    component: ExampleComponent   // Компонент, который будет отображен
+    path: '/game',        // URL в браузере
+    name: 'Game',     // Имя маршрута для удобства
+    component: Game   // Компонент, который будет отображен
+  },
+  {
+    path: '/login',        // URL в браузере
+    name: 'Login',     // Имя маршрута для удобства
+    component: Login   // Компонент, который будет отображен
   },
   {
     path: '/:pathMatch(.*)*', // Этот маршрут ловит все пути, не указанные выше
