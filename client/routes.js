@@ -1,11 +1,12 @@
 // src/router/index.js
 import { createRouter, createWebHistory } from 'vue-router'
-import ExampleComponent from '../components/ExampleComponent.vue'
+import ExampleComponent from './components/ExampleComponent.vue'
+import NotFound from './components/NotFound.vue'
 
 // 1. Определяем массив маршрутов (routes)
 const routes = [
   {
-    path: '/',        // URL в браузере
+    path: '/kek',        // URL в браузере
     name: 'Home',     // Имя маршрута для удобства
     component: ExampleComponent   // Компонент, который будет отображен
   },
