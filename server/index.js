@@ -12,9 +12,12 @@ import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import { pathToFileURL } from 'url';
 import path from 'path';
+import { createServer as createViteServer } from 'vite';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
+const isProduction = process.env.NODE_ENV === 'production';
+
 
 const app = express();
 const server = http.createServer(app);
@@ -148,8 +151,27 @@ app.use(cookieParser());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
+if (!isProduction) {
+    const vite = await createViteServer({
+        server: { middlewareMode: 'html' },
+    });
+
+    // Используем Vite как middleware
+    app.use(vite.middlewares);
+} else {
+    // В production используем собранные файлы
+    app.use(express.static('dist-public'));
+}
 
 // ROOTS
+// Обрабатываем все GET-запросы, которые не начинаются с /api
+// app.get('*', (req, res) => {
+//     if (!req.path.startsWith('/api')) {
+//         res.sendFile(path.join(__dirname, '../client/index.html'));
+//     }
+// });
+
+
 app.get('/', (req, res) => {
     if(req.cookies.username === undefined){
         res.redirect('/login');
@@ -166,47 +188,47 @@ app.get('/', (req, res) => {
     }
 });
 
-app.get('/game', (req, res) => {
-    let params = {
-        username: req.cookies.username
-    }
-    res.render('home', {username: req.cookies.username});
-});
+// app.get('/game', (req, res) => {
+//     let params = {
+//         username: req.cookies.username
+//     }
+//     res.render('home', {username: req.cookies.username});
+// });
 
-app.get('/login', (req, res) => {
-    let params = {
-        styles: ['login.css']
-    }
-    res.render('login', params);
-});
+// app.get('/login', (req, res) => {
+//     let params = {
+//         styles: ['login.css']
+//     }
+//     res.render('login', params);
+// });
 
-app.get('/lobby', (req, res) => {
-    let params = {
-        styles: ['lobby.css'],
-        me: req.cookies.username,
-    }
-    res.render('lobby', params);
-});
+// app.get('/lobby', (req, res) => {
+//     let params = {
+//         styles: ['lobby.css'],
+//         me: req.cookies.username,
+//     }
+//     res.render('lobby', params);
+// });
 
-app.post('/login', (req, res) => {
-    let name;
-    if (req.body !== undefined && req.body.username !== undefined){
-        name = req.body.username;
-        res.cookie('username', name); // время жизни куки - 1 час
-    }
-    res.redirect('/');
-});
+// app.post('/login', (req, res) => {
+//     let name;
+//     if (req.body !== undefined && req.body.username !== undefined){
+//         name = req.body.username;
+//         res.cookie('username', name); // время жизни куки - 1 час
+//     }
+//     res.redirect('/');
+// });
 
-app.get('/exit', (req, res) => {
-    try{
-        lobby.removePlayer(req.cookies.username);
-    }
-    catch(e){
-        console.error(e.message);
-    }
-    res.clearCookie('username');
-    res.redirect('/');
-});
+// app.get('/exit', (req, res) => {
+//     try{
+//         lobby.removePlayer(req.cookies.username);
+//     }
+//     catch(e){
+//         console.error(e.message);
+//     }
+//     res.clearCookie('username');
+//     res.redirect('/');
+// });
 
 
 // Проверка, запущен ли файл напрямую (а не импортирован)

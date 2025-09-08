@@ -6,7 +6,7 @@ import { fileURLToPath, URL } from 'node:url'
 export default defineConfig({
   plugins: [vue()],
   // Указываем корень для фронтенд-части
-  root: fileURLToPath(new URL('./', import.meta.url)),
+  root: fileURLToPath(new URL('./client', import.meta.url)),
   // Опционально: Настройка для продакшена, если приложение будет не в корне
   base: process.env.NODE_ENV === 'production' ? '/static/' : '/',
   server: {
