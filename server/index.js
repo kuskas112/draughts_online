@@ -1,5 +1,5 @@
-import { SerializablePlayField } from './SerializablePlayField.js';
-import { Lobby, Pair, Player } from './assets/js/LobbyClasses.js';
+import { SerializablePlayField } from '../SerializablePlayField.js';
+import { Lobby, Pair, Player } from '../assets/js/LobbyClasses.js';
 import express from 'express';
 import handlebars from 'express-handlebars';
 import { Server } from 'socket.io';
@@ -11,6 +11,7 @@ const { param } = pkg;
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import { pathToFileURL } from 'url';
+import path from 'path';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -142,7 +143,7 @@ app.engine(
 );
 app.set('views', './views');
 app.set('view engine', 'handlebars');
-app.use(express.static(`${__dirname}/assets`));
+app.use(express.static(path.join(__dirname, '../assets')));
 app.use(cookieParser());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
