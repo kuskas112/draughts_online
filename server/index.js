@@ -18,13 +18,12 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const isProduction = process.env.NODE_ENV === 'production';
 
-
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server);  // Изменено на new Server()
 const connections = {};
 const host = 'localhost';
-const port = 7000;
+const port = 3000;
 const lobby = new Lobby();
 
 io.on('connection', (socket) => {
@@ -148,9 +147,21 @@ app.set('views', './views');
 app.set('view engine', 'handlebars');
 app.use(express.static(path.join(__dirname, '../assets')));
 app.use(cookieParser());
+app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
+
+
+// ROOTS
+app.post('/api/login', (req, res) => {
+    console.log('Request received:', req.body);
+    res.json({ body: req.body, success: true });
+});
+
+
+// ВАЖНО
+// Этот обработчик должен идти после всех определений роутов
 if (!isProduction) {
     const vite = await createViteServer({
         server: { middlewareMode: 'html' },
@@ -163,31 +174,6 @@ if (!isProduction) {
     app.use(express.static('dist-public'));
 }
 
-// ROOTS
-// Обрабатываем все GET-запросы, которые не начинаются с /api
-// app.get('*', (req, res) => {
-//     if (!req.path.startsWith('/api')) {
-//         res.sendFile(path.join(__dirname, '../client/index.html'));
-//     }
-// });
-
-
-app.get('/', (req, res) => {
-    if(req.cookies.username === undefined){
-        res.redirect('/login');
-        return;
-    }
-
-    try{
-        lobby.addPlayer(req.cookies.username);
-        res.redirect('/lobby');
-        return;
-    }
-    catch(e){
-        console.error(e.message);
-    }
-});
-
 // app.get('/game', (req, res) => {
 //     let params = {
 //         username: req.cookies.username
@@ -195,7 +181,7 @@ app.get('/', (req, res) => {
 //     res.render('home', {username: req.cookies.username});
 // });
 
-// app.get('/login', (req, res) => {
+// app.get('/api/login', (req, res) => {
 //     let params = {
 //         styles: ['login.css']
 //     }
@@ -210,13 +196,17 @@ app.get('/', (req, res) => {
 //     res.render('lobby', params);
 // });
 
-// app.post('/login', (req, res) => {
-//     let name;
-//     if (req.body !== undefined && req.body.username !== undefined){
-//         name = req.body.username;
-//         res.cookie('username', name); // время жизни куки - 1 час
-//     }
-//     res.redirect('/');
+// app.post('/api/login', (req, res) => {
+//     let name = 'NONE';
+//     console.log(req.body);
+//     // if (req.body !== undefined && req.body.username !== undefined){
+//     //     name = req.body.username;
+//     //     res.cookie('username', name); // время жизни куки - 1 час
+//     // }
+//     res.json({
+//         success: true,
+//         username: name,
+//     });
 // });
 
 // app.get('/exit', (req, res) => {

@@ -1,9 +1,21 @@
 <script>
-    function inputUsername() {
-        console.log(this.username);
+    function sendForm(){
+        console.log('start fetch');
+        fetch('/api/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({username: this.username}),
+        }).then(res => res.json())
+            .then(data => {
+                console.log(data);
+                if (data.success) {
+                    //this.$router.push('/');
+                }
+            });
     }
 
-    
     export default {
         data() {
             return {
@@ -11,16 +23,16 @@
             }
         },
         methods: {
-            inputUsername,
-        },
+            sendForm,
+        }
     };
 </script>
 
 <template>
     <div class="form-container">
-            <label for="username">Введите ваше имя</label> <br>
-            <input v-model="username" type="text" name="username" id="username" placeholder="Имя...">
-            <input @click="inputUsername" type="submit" value="Отправить">
+        <label for="username">Введите ваше имя</label> <br>
+        <input v-model="username" type="text" name="username" id="username" placeholder="Имя...">
+        <input @click="sendForm" type="submit" value="Отправить">
     </div>
 </template>
 

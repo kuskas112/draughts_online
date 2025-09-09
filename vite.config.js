@@ -16,11 +16,11 @@ export default defineConfig({
     // Чтобы избежать CORS при обращении к Express-серверу
     proxy: {
       '/api': {
-        target: 'http://localhost:7000', // Куда перенаправлять запросы
+        target: 'http://localhost:3000', // Куда перенаправлять запросы
         changeOrigin: true
       },
       '/socket.io': {
-        target: 'ws://localhost:7000', // Для WebSocket (Socket.io)
+        target: 'ws://localhost:3000', // Для WebSocket (Socket.io)
         ws: true
       }
     }
