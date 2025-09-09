@@ -11,7 +11,7 @@
             .then(data => {
                 console.log(data);
                 if (data.success) {
-                    //this.$router.push('/');
+                    this.$router.push('/');
                 }
             });
     }
@@ -24,24 +24,36 @@
         },
         methods: {
             sendForm,
-        }
+        },
     };
 </script>
 
 <template>
     <div class="form-container">
-        <label for="username">Введите ваше имя</label> <br>
-        <input v-model="username" type="text" name="username" id="username" placeholder="Имя...">
-        <input @click="sendForm" type="submit" value="Отправить">
+        <div class="form">
+            <label for="username">Введите ваше имя</label> <br>
+            <input v-model="username" type="text" name="username" id="username" placeholder="Имя...">
+            <input @click="sendForm" type="submit" value="Отправить">
+        </div>
     </div>
 </template>
 
 <style>
-    .form-container{
-        font-size: large;
+    .form-container {
         display: flex;
         justify-content: center;
         align-items: center;
-        height: 100vh;
+        height: 100vh; /* Высота экрана */
+    }
+
+    .form {
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        padding: 20px;
+        border: 2px solid black;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
 </style>

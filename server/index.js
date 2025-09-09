@@ -155,10 +155,17 @@ app.use(bodyParser.json());
 
 // ROOTS
 app.post('/api/login', (req, res) => {
-    console.log('Request received:', req.body);
-    res.json({ body: req.body, success: true });
+    let name;
+    console.log(req.body);
+    if (req.body !== undefined && req.body.username !== undefined){
+        name = req.body.username;
+        res.cookie('username', name); // время жизни куки - 1 час
+    }
+    res.json({
+        success: true,
+        username: name,
+    });
 });
-
 
 // ВАЖНО
 // Этот обработчик должен идти после всех определений роутов
@@ -196,18 +203,7 @@ if (!isProduction) {
 //     res.render('lobby', params);
 // });
 
-// app.post('/api/login', (req, res) => {
-//     let name = 'NONE';
-//     console.log(req.body);
-//     // if (req.body !== undefined && req.body.username !== undefined){
-//     //     name = req.body.username;
-//     //     res.cookie('username', name); // время жизни куки - 1 час
-//     // }
-//     res.json({
-//         success: true,
-//         username: name,
-//     });
-// });
+
 
 // app.get('/exit', (req, res) => {
 //     try{
