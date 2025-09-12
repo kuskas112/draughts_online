@@ -16,34 +16,51 @@
             });
     }
 
-    export default {
-        data() {
-            return {
-                username: '',
-            }
-        },
-        methods: {
-            sendForm,
-            moveButtonSelector,
-        },
-    };
+    function chooseLoginButton(){
+        if (this.currentSelectedButton === 'login') return;
+        this.currentSelectedButton = 'login';
+        this.moveButtonSelector('move-left');
+    }
+
+    function chooseSignupButton(){
+        if (this.currentSelectedButton === 'signup') return;
+        this.currentSelectedButton = 'signup';
+        this.moveButtonSelector('move-right');
+    }
 
     function moveButtonSelector(animationName){
         const buttonSelector = document.getElementById('button-selector');
         buttonSelector.style.animation = `${animationName} 0.4s ease forwards`;
     }
 
+    export default {
+        data() {
+            return {
+                username: '',
+                password: '',
+                currentSelectedButton: 'login', // 'login' или 'signup'
+            }
+        },
+        methods: {
+            sendForm,
+            moveButtonSelector,
+            chooseLoginButton,
+            chooseSignupButton,
+        },
+    };
+
 </script>
 <template>
     <div class="form-container">
         <div class="auth-buttons-container">
             <div class="button-selector" id="button-selector"></div>
-            <div @click="moveButtonSelector('move-left')" class="auth-button login-button" id="login-button">Login</div>
-            <div @click="moveButtonSelector('move-right')" class="auth-button signup-button" id="signup-button">Sign up</div>
+            <div @click="chooseLoginButton" class="auth-button login-button" id="login-button">Login</div>
+            <div @click="chooseSignupButton" class="auth-button signup-button" id="signup-button">Sign up</div>
         </div>
         <div class="form">
             <label for="username">Введите ваше имя</label> <br>
             <input v-model="username" type="text" name="username" id="username" placeholder="Имя...">
+            <input v-model="password" type="text" name="password" id="password" placeholder="Пароль...">
             <input @click="sendForm" type="submit" value="Отправить">
         </div>
     </div>
@@ -70,9 +87,6 @@
         cursor: pointer;
         transition: background-color 0.2s ease;
     }
-    /* .auth-button:hover{
-        background-color: #f0f0f0;
-    } */
 
     .login-button{
         left: 0;   
