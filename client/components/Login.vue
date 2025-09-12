@@ -1,18 +1,22 @@
 <script>
     function sendForm(){
         console.log('start fetch');
+        const data = {
+            username: this.username,
+            password: this.password,
+        };
         fetch('/api/login', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({username: this.username}),
+            body: JSON.stringify(data),
         }).then(res => res.json())
             .then(data => {
                 console.log(data);
-                if (data.success) {
-                    this.$router.push('/');
-                }
+                // if (data.success) {
+                //     this.$router.push('/');
+                // }
             });
     }
 
@@ -124,6 +128,18 @@
         border: 2px solid black;
         border-radius: 8px;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .form input{
+        padding: 10px;
+        font-size: 16px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+
+    .form label{
+        font-size: 18px;
+        margin-bottom: 10px;
     }
 
     @keyframes move-right {
