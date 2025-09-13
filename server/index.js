@@ -153,14 +153,13 @@ app.use(bodyParser.json());
 
 
 
-// ROOTS
+// ROUTES
 app.post('/api/login', (req, res) => {
-    let name;
     console.log(req.body);
-    if (req.body !== undefined && req.body.username !== undefined){
-        name = req.body.username;
-        res.cookie('username', name); // время жизни куки - 1 час
-    }
+    // if (req.body !== undefined && req.body.username !== undefined){
+    //     name = req.body.username;
+    //     res.cookie('username', name); // время жизни куки - 1 час
+    // }
     res.json({
         success: true,
         data: req.body,

@@ -4,6 +4,7 @@
         const data = {
             username: this.username,
             password: this.password,
+            action: this.currentSelectedButton, // 'login' или 'signup'
         };
         fetch('/api/login', {
             method: 'POST',
@@ -61,8 +62,14 @@
             <div @click="chooseLoginButton" class="auth-button login-button" id="login-button">Login</div>
             <div @click="chooseSignupButton" class="auth-button signup-button" id="signup-button">Sign up</div>
         </div>
-        <div class="form">
-            <label for="username">Введите ваше имя</label> <br>
+        <div v-if="currentSelectedButton === 'login'" class="form">
+            <label for="username">Вход в аккаунт</label> <br>
+            <input v-model="username" type="text" name="username" id="username" placeholder="Имя...">
+            <input v-model="password" type="text" name="password" id="password" placeholder="Пароль...">
+            <input @click="sendForm" type="submit" value="Отправить">
+        </div>
+        <div v-else-if="currentSelectedButton === 'signup'" class="form">
+            <label for="username">Регистрация</label> <br>
             <input v-model="username" type="text" name="username" id="username" placeholder="Имя...">
             <input v-model="password" type="text" name="password" id="password" placeholder="Пароль...">
             <input @click="sendForm" type="submit" value="Отправить">
@@ -73,11 +80,10 @@
 <style>
 
     .auth-buttons-container {
-        width: 50%;
+        width: 40%;
         height: 10%;
         position: relative;
         margin-bottom: 20px;
-        border: 2px solid pink;
         font-size: 40px;
     }
 
@@ -106,8 +112,9 @@
         left: 0;
         width: 50%;
         height: 100%;
-        background-color: rgba(0, 0, 0, 0.5); /* замените rgba(0, 0, 0, 0.5) на желаемый цвет и прозрачность прямоугольника */
+        background-color: rgba(53, 53, 53, 0.5); /* замените rgba(0, 0, 0, 0.5) на желаемый цвет и прозрачность прямоугольника */
         z-index: -1;
+        border-radius: 8px;
     }
 
     .form-container {
@@ -119,7 +126,7 @@
     }
 
     .form {
-        width: 50%;
+        width: 40%;
         text-align: center;
         display: flex;
         flex-direction: column;
