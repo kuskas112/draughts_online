@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import { fileURLToPath, URL } from 'node:url'
+import { resolve } from 'path'
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -9,6 +10,13 @@ export default defineConfig({
   root: fileURLToPath(new URL('./client', import.meta.url)),
   // Опционально: Настройка для продакшена, если приложение будет не в корне
   base: process.env.NODE_ENV === 'production' ? '/static/' : '/',
+  resolve: {
+    extensions: ['.ts', '.js', '.vue', '.json'],
+    alias: {
+        // Скомпилированные файлы ts
+        '@ts': fileURLToPath(new URL('./tscompiled', import.meta.url)),
+    }
+  },
   server: {
     // Порт dev-сервера Vite
     port: 5173,

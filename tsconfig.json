@@ -1,0 +1,42 @@
+{
+    "compilerOptions": {
+      // Целевая версия JavaScript
+      "target": "ES2020",
+      
+      // Используем ES Modules
+      "module": "ESNext",
+      "moduleResolution": "node",
+      
+      // Поддержка Vue и современных возможностей
+      "lib": ["ES2020", "DOM", "DOM.Iterable"],
+      
+      // Настройки для совместимости модулей
+      "esModuleInterop": true,
+      "allowSyntheticDefaultImports": true,
+      "resolveJsonModule": true,
+      
+      // Строгость типов (рекомендуется для Vue)
+      "strict": true,
+      "noImplicitAny": false, // Можно включить позже
+      
+      // Для декораторов TypeORM
+      "experimentalDecorators": true,
+      "emitDecoratorMetadata": true,     
+
+      // Выходная директория
+      "outDir": "./tscompiled",
+      
+    },
+    
+    // Включаемые файлы
+    "include": [
+      "db/**/*.ts",      // Ваша папка с TypeORM
+    ],
+    
+    // Исключаемые файлы
+    "exclude": [
+      "node_modules",
+      "dist",
+      "**/*.js"          // Исключаем JS файлы
+    ]
+  }
