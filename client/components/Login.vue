@@ -1,4 +1,6 @@
 <script>
+    import Cookies from 'js-cookie';
+
     function sendForm(){
         console.log('start fetch');
         const action = this.currentSelectedButton // 'login' или 'signup'
@@ -37,6 +39,13 @@
     }
 
     export default {
+        mounted() {
+            const isLoggedIn = Cookies.get('isLoggedIn') === 'true' ? true : false;
+            if (isLoggedIn) {
+                console.log('User is already logged in, redirecting to profile...');
+                //this.$router.push('/profile');
+            }
+        },
         data() {
             return {
                 username: '',

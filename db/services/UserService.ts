@@ -18,6 +18,13 @@ export class UserService {
         return await this.userRepository.findOne({ where: { id } });
     }
 
+    // Получение пользователя по имени
+    async getUserByName(name: string): Promise<User | null> {
+        return await this.userRepository.findOneBy({
+            name: name,
+        });
+    }
+
     // Создание пользователя
     async createUser(userData: Partial<User>): Promise<User> {
         const user = this.userRepository.create(userData);

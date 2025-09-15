@@ -159,28 +159,24 @@ import bcrypt from "bcrypt";
 app.post('/api/signup', async (req, res) => {
     console.log(req.body);
     try{
+        if(req.body.password.length < 4 || req.body.username.length < 4){
+            throw new Error('Username and password must be at least 4 characters long');
+        }
         let hashedPassword = await bcrypt.hash(req.body.password, 10);
         console.log(`Хешированный пароль: ${hashedPassword}`);
         const user = {
             name: req.body.username,
             password: hashedPassword,
         };
-
-        if(user.password.length < 4 || user.name.length < 4){
-            throw new Error('Username and password must be at least 4 characters long');
-        }
         await userService.createUser(user);
+        res.cookie('username', user.name);
+        res.cookie('isLoggedIn', 'true');
         res.json({success: true});
     }
     catch (e){
         res.status(500).json({success: false, error: e.message, errorCode: e.code});
         return;
     }
-    
-    // if (req.body !== undefined && req.body.username !== undefined){
-    //     name = req.body.username;
-    //     res.cookie('username', name); // время жизни куки - 1 час
-    // }
 });
 
 // ВАЖНО
