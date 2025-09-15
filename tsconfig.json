@@ -6,7 +6,7 @@
       "target": "es2021",
       "module": "es2022",
       "moduleResolution": "node",
-      "outDir": "./build",
+      "outDir": "./tscompiled",
       "emitDecoratorMetadata": true,
       "experimentalDecorators": true,
       "sourceMap": true

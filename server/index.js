@@ -152,18 +152,31 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
 
+import { userService } from '../tscompiled/services/UserService.js'; 
 
 // ROUTES
 app.post('/api/login', (req, res) => {
     console.log(req.body);
+    if(req.body.action !== 'login'){
+        res.json({success: false});
+        return;
+    }
+    let hashedPassword = req.body.password; //bcrypt.hashSync(req.body.password, 10);
+    console.log(`Хешированный пароль: ${hashedPassword}`);
+    const user = {
+        name: req.body.username,
+        password: hashedPassword,
+    };
+    userService.createUser(user).then((result) => {
+        res.json({
+            success: true,
+            data: req.body,
+        });
+    });
     // if (req.body !== undefined && req.body.username !== undefined){
     //     name = req.body.username;
     //     res.cookie('username', name); // время жизни куки - 1 час
     // }
-    res.json({
-        success: true,
-        data: req.body,
-    });
 });
 
 // ВАЖНО
