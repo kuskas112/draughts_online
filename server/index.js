@@ -153,6 +153,7 @@ app.use(bodyParser.json());
 
 
 import { userService } from '../tscompiled/services/UserService.js'; 
+import bcrypt from "bcrypt";
 
 // ROUTES
 app.post('/api/login', async (req, res) => {
@@ -162,12 +163,16 @@ app.post('/api/login', async (req, res) => {
         return;
     }
     try{
-        let hashedPassword = req.body.password; //bcrypt.hashSync(req.body.password, 10);
+        let hashedPassword = await bcrypt.hash(req.body.password, 10);
         console.log(`Хешированный пароль: ${hashedPassword}`);
         const user = {
             name: req.body.username,
             password: hashedPassword,
         };
+
+        if(user.password.length < 4 || user.name.length < 4){
+            throw new Error('Username and password must be at least 4 characters long');
+        }
         await userService.createUser(user);
         res.json({success: true});
     }
