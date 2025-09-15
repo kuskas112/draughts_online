@@ -179,6 +179,30 @@ app.post('/api/signup', async (req, res) => {
     }
 });
 
+app.post('/api/login', async (req, res) => {
+    console.log(req.body);
+    try{
+        if(req.body.password.length < 4 || req.body.username.length < 4){
+            throw new Error('Username and password must be at least 4 characters long');
+        }
+        const name = req.body.username;
+        const user = await userService.getUserByName(name);
+        if(!user){
+            throw new Error('User not found');
+        }
+        if(!await bcrypt.compare(req.body.password, user.password)){
+            throw new Error('Invalid password');
+        }
+        res.cookie('username', user.name);
+        res.cookie('isLoggedIn', 'true');
+        res.json({success: true});
+    }
+    catch (e){
+        res.status(500).json({success: false, error: e.message, errorCode: e.code});
+        return;
+    }
+});
+
 // ВАЖНО
 // Этот обработчик должен идти после всех определений роутов
 if (!isProduction) {
