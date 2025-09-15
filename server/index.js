@@ -155,24 +155,27 @@ app.use(bodyParser.json());
 import { userService } from '../tscompiled/services/UserService.js'; 
 
 // ROUTES
-app.post('/api/login', (req, res) => {
+app.post('/api/login', async (req, res) => {
     console.log(req.body);
     if(req.body.action !== 'login'){
         res.json({success: false});
         return;
     }
-    let hashedPassword = req.body.password; //bcrypt.hashSync(req.body.password, 10);
-    console.log(`Хешированный пароль: ${hashedPassword}`);
-    const user = {
-        name: req.body.username,
-        password: hashedPassword,
-    };
-    userService.createUser(user).then((result) => {
-        res.json({
-            success: true,
-            data: req.body,
-        });
-    });
+    try{
+        let hashedPassword = req.body.password; //bcrypt.hashSync(req.body.password, 10);
+        console.log(`Хешированный пароль: ${hashedPassword}`);
+        const user = {
+            name: req.body.username,
+            password: hashedPassword,
+        };
+        await userService.createUser(user);
+        res.json({success: true});
+    }
+    catch (e){
+        res.status(500).json({success: false, error: e.message, errorCode: e.code});
+        return;
+    }
+    
     // if (req.body !== undefined && req.body.username !== undefined){
     //     name = req.body.username;
     //     res.cookie('username', name); // время жизни куки - 1 час
