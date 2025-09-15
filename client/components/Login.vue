@@ -1,12 +1,13 @@
 <script>
     function sendForm(){
         console.log('start fetch');
+        const action = this.currentSelectedButton // 'login' или 'signup'
         const data = {
             username: this.username,
             password: this.password,
-            action: this.currentSelectedButton, // 'login' или 'signup'
         };
-        fetch('/api/login', {
+        const url = action === 'login' ? '/api/login' : '/api/signup';
+        fetch(url, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -15,9 +16,6 @@
         }).then(res => res.json())
             .then(data => {
                 console.log(data);
-                // if (data.success) {
-                //     this.$router.push('/');
-                // }
             });
     }
 

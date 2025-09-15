@@ -156,12 +156,8 @@ import { userService } from '../tscompiled/services/UserService.js';
 import bcrypt from "bcrypt";
 
 // ROUTES
-app.post('/api/login', async (req, res) => {
+app.post('/api/signup', async (req, res) => {
     console.log(req.body);
-    if(req.body.action !== 'login'){
-        res.json({success: false});
-        return;
-    }
     try{
         let hashedPassword = await bcrypt.hash(req.body.password, 10);
         console.log(`Хешированный пароль: ${hashedPassword}`);
