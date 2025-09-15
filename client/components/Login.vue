@@ -18,6 +18,11 @@
         }).then(res => res.json())
             .then(data => {
                 console.log(data);
+                if (data.success) {
+                    this.$router.push('/profile');
+                } else {
+                    alert(data.message);
+                }
             });
     }
 
@@ -43,7 +48,7 @@
             const isLoggedIn = Cookies.get('isLoggedIn') === 'true' ? true : false;
             if (isLoggedIn) {
                 console.log('User is already logged in, redirecting to profile...');
-                //this.$router.push('/profile');
+                this.$router.push('/profile');
             }
         },
         data() {
