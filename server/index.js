@@ -204,7 +204,16 @@ app.post('/api/login', async (req, res) => {
     }
 });
 
-const lobbies = [];
+let newLobby = new Lobby();
+newLobby.addPlayer('player1');
+newLobby.addPlayer('player2');
+
+const lobbies = [
+    newLobby,
+    newLobby,
+    newLobby,
+];
+
 app.post('/api/getlobbies', async (req, res) => {
     try{
         res.json({

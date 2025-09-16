@@ -9,7 +9,8 @@
             },
         });
         result = await result.json();
-        console.log(result);
+        this.lobbies = result.lobbies;
+        console.log(this.lobbies);
     }
 
     export default {
@@ -18,6 +19,7 @@
         },
         data(){
             return {
+                lobbies: [],
             }
         },
         methods: {
@@ -33,14 +35,15 @@
 <template>
     <div>
         <div class="lobbies-list">
-            <Lobby></Lobby>
+            <Lobby v-for="(lobby, index) in this.lobbies" :key="index" 
+            :lobby = "lobby"
+            />
         </div>
     </div>
 </template>
 
 <style>
     .lobbies-list{
-        display: flex;
         width: 100%;
         justify-content: center;
     }

@@ -1,7 +1,7 @@
 class Player{
     constructor(user){
         this.user = user;
-        this.name = user.name;
+        this.name = user;
         this.isHost = false;
         this.socket = null;
     }

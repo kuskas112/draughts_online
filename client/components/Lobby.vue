@@ -1,11 +1,15 @@
 <script>
 
     export default {
-        mounted(){
-        },
-        data(){
-            return {
+        // Явно объявляем props которые ожидаем получить
+        props: {
+            lobby: {
+                type: Object,
+                default: null
             }
+        },
+        mounted(){
+            console.log(this.lobby);
         },
         methods: {
         }
@@ -17,8 +21,10 @@
         <div class="lobby">
             <div class="lobby-players">
                 <div class="pair">
-                    <div>Player</div>
-                    <div>Player</div>
+                    <div v-for="(player, index) in this.lobby.players" :key="index">
+                        <!-- TODO изменить на username -->
+                        {{player.user}}
+                    </div>
                 </div>
             </div>
             <div class="lobby-button">

@@ -1,5 +1,5 @@
 <script>
-    //import Cookies from 'js-cookie';
+    import Cookies from 'js-cookie';
 
     function sendForm(){
         console.log('start fetch');
@@ -45,11 +45,11 @@
 
     export default {
         mounted() {
-            // const isLoggedIn = Cookies.get('isLoggedIn') === 'true' ? true : false;
-            // if (isLoggedIn) {
-            //     console.log('User is already logged in, redirecting to profile...');
-            //     this.$router.push('/profile');
-            // }
+            const isLoggedIn = Cookies.get('isLoggedIn') === 'true' ? true : false;
+            if (isLoggedIn) {
+                console.log('User is already logged in, redirecting to profile...');
+                this.$router.push('/profile');
+            }
         },
         data() {
             return {
