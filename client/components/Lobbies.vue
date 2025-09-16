@@ -33,8 +33,9 @@
 </script>
 
 <template>
-    <div>
+    <div style="display: flex; justify-content: center;">
         <div class="lobbies-list">
+            <button class="create-lobby-button">+ Create Lobby</button>
             <Lobby v-for="(lobby, index) in this.lobbies" :key="index" 
             :lobby = "lobby"
             />
@@ -42,10 +43,17 @@
     </div>
 </template>
 
-<style>
+<style scoped>
     .lobbies-list{
-        width: 100%;
+        width: 40%;
         justify-content: center;
+        position: relative;
+    }
+
+    .create-lobby-button{
+        width: 100%;
+        margin-top: 20px;
+        min-height: 40px;
     }
 </style>
 

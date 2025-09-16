@@ -9,7 +9,6 @@
             }
         },
         mounted(){
-            console.log(this.lobby);
         },
         methods: {
         }
@@ -33,17 +32,18 @@
         </div>
 </template>
 
-<style>
+<style scoped>
     .lobby{
         font-size: 20px;
         display: flex;
         justify-content: space-between;
         position: relative;
-        width: 70%;
+        width: 100%;
         height: 100px;
         background-color: aqua;
         border-radius: 8px;
-        padding: 20px;
+        margin-bottom: 20px;
+        margin-top: 20px;
     }
 
     .lobby-button{
@@ -53,9 +53,11 @@
     .lobby button{
         position: relative;
         height: 50%;
+        margin-right: 20px;
     }
 
     .lobby-players{
+        margin-left: 20px;
         display: flex;
         align-items: center;
     }

@@ -26,7 +26,7 @@
     </div>
 </template>
 
-<style>
+<style scoped>
     .logout-button {
         padding: 10px 20px;
         background-color: #ff4d4d;

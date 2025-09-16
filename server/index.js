@@ -1,5 +1,5 @@
 import { SerializablePlayField } from '../SerializablePlayField.js';
-import { Lobby, Pair, Player } from '../assets/js/LobbyClasses.js';
+import { Lobby } from '../assets/js/LobbyClasses.js';
 import express from 'express';
 import handlebars from 'express-handlebars';
 import { Server } from 'socket.io';
@@ -207,10 +207,7 @@ app.post('/api/login', async (req, res) => {
 let newLobby = new Lobby();
 newLobby.addPlayer('player1');
 newLobby.addPlayer('player2');
-
 const lobbies = [
-    newLobby,
-    newLobby,
     newLobby,
 ];
 
