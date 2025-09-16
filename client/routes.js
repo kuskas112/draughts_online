@@ -3,7 +3,7 @@ import NotFound from './components/NotFound.vue'
 import Game from './components/Game.vue'
 import Login from './components/Login.vue'
 import Profile from './components/Profile.vue'
-import Lobby from './components/Lobby.vue'
+import Lobbies from './components/Lobbies.vue'
 
 
 const routes = [
@@ -23,9 +23,9 @@ const routes = [
     component: Profile
   },
   {
-    path: '/lobby',
-    name: 'Lobby',
-    component: Lobby
+    path: '/lobbies',
+    name: 'Lobbies',
+    component: Lobbies
   },
   {
     path: '/:pathMatch(.*)*',
