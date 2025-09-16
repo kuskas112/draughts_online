@@ -1,6 +1,7 @@
 class Player{
-    constructor(name){
-        this.name = name;
+    constructor(user){
+        this.user = user;
+        this.name = user.name;
         this.isHost = false;
         this.socket = null;
     }

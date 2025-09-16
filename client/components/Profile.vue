@@ -1,13 +1,13 @@
 <script>
-    import Cookies from 'js-cookie';
+    //import Cookies from 'js-cookie';
 
     export default {
         mounted() {
-            const isLoggedIn = Cookies.get('isLoggedIn') === 'true' ? true : false;
-            if (!isLoggedIn) {
-                console.log('User is not logged in, redirecting to login page...');
-                this.$router.push('/login');
-            }
+            // const isLoggedIn = Cookies.get('isLoggedIn') === 'true' ? true : false;
+            // if (!isLoggedIn) {
+            //     console.log('User is not logged in, redirecting to login page...');
+            //     this.$router.push('/login');
+            // }
         },
         methods: {
             logout() {

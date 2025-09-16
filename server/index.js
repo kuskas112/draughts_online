@@ -153,7 +153,7 @@ app.use(bodyParser.json());
 
 
 import { userService } from '../tscompiled/services/UserService.js'; 
-import bcrypt from "bcrypt";
+//import bcrypt from "bcrypt";
 
 // ROUTES
 app.post('/api/signup', async (req, res) => {
@@ -162,7 +162,7 @@ app.post('/api/signup', async (req, res) => {
         if(req.body.password.length < 4 || req.body.username.length < 4){
             throw new Error('Username and password must be at least 4 characters long');
         }
-        let hashedPassword = await bcrypt.hash(req.body.password, 10);
+        let hashedPassword = body.req.password;//await bcrypt.hash(req.body.password, 10);
         console.log(`Хешированный пароль: ${hashedPassword}`);
         const user = {
             name: req.body.username,
@@ -190,12 +190,27 @@ app.post('/api/login', async (req, res) => {
         if(!user){
             throw new Error('User not found');
         }
-        if(!await bcrypt.compare(req.body.password, user.password)){
+        // if(!await bcrypt.compare(req.body.password, user.password)){
+        if(req.body.password === user.password){
             throw new Error('Invalid password');
         }
         res.cookie('username', user.name);
         res.cookie('isLoggedIn', 'true');
         res.json({success: true});
+    }
+    catch (e){
+        res.status(500).json({success: false, error: e.message, errorCode: e.code});
+        return;
+    }
+});
+
+const lobbies = [];
+app.post('/api/getlobbies', async (req, res) => {
+    try{
+        res.json({
+            success: true,
+            lobbies: lobbies,
+        });
     }
     catch (e){
         res.status(500).json({success: false, error: e.message, errorCode: e.code});
