@@ -15,6 +15,7 @@ export default defineConfig({
     alias: {
         // Скомпилированные файлы ts
         '@ts': fileURLToPath(new URL('./tscompiled', import.meta.url)),
+        '@js': fileURLToPath(new URL('./assets/js', import.meta.url)),
     }
   },
   server: {

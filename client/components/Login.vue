@@ -1,6 +1,4 @@
 <script>
-    import Cookies from 'js-cookie';
-
     function sendForm(){
         console.log('start fetch');
         const action = this.currentSelectedButton // 'login' или 'signup'
@@ -17,11 +15,10 @@
             body: JSON.stringify(data),
         }).then(res => res.json())
             .then(data => {
-                console.log(data);
                 if (data.success) {
                     this.$router.push('/profile');
                 } else {
-                    alert(data.message);
+                    alert(data.error);
                 }
             });
     }
@@ -43,11 +40,12 @@
         buttonSelector.style.animation = `${animationName} 0.4s ease forwards`;
     }
 
+    import { isAuth } from '@js/SessionStatusManager.js';
+
     export default {
-        mounted() {
-            const isLoggedIn = Cookies.get('isLoggedIn') === 'true' ? true : false;
-            if (isLoggedIn) {
-                console.log('User is already logged in, redirecting to profile...');
+        async mounted() {
+            let isLoggedIn = await isAuth();
+            if(isLoggedIn){
                 this.$router.push('/profile');
             }
         },

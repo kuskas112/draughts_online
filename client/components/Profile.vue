@@ -1,19 +1,22 @@
 <script>
-    import Cookies from 'js-cookie';
+
+    import { isAuth } from '@js/SessionStatusManager.js';
 
     export default {
-        mounted() {
-            const isLoggedIn = Cookies.get('isLoggedIn') === 'true' ? true : false;
-            if (!isLoggedIn) {
-                console.log('User is not logged in, redirecting to login page...');
+        async mounted() {
+            let isLoggedIn = await isAuth();
+            if(!isLoggedIn){
                 this.$router.push('/login');
             }
         },
         methods: {
-            logout() {
-                Cookies.remove('username');
-                Cookies.set('isLoggedIn', 'false');
-                console.log('User logged out, redirecting to login page...');
+            async logout() {
+                await fetch('/api/logout', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
                 this.$router.push('/login');
             },
         },
