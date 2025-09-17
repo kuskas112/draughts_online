@@ -13,6 +13,18 @@
         console.log(this.lobbies);
     }
 
+    async function createLobby(){
+        let result = await fetch('/api/addlobby', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+        result = await result.json();
+        console.log(result);
+        this.getLobbies();
+    }
+
     export default {
         mounted(){
             this.getLobbies();
@@ -24,6 +36,7 @@
         },
         methods: {
             getLobbies,
+            createLobby,
         },
         components: {
             Lobby,
@@ -35,7 +48,7 @@
 <template>
     <div style="display: flex; justify-content: center;">
         <div class="lobbies-list">
-            <button class="create-lobby-button">+ Create Lobby</button>
+            <button @click="createLobby" class="create-lobby-button">+ Create Lobby</button>
             <Lobby v-for="(lobby, index) in this.lobbies" :key="index" 
             :lobby = "lobby"
             />

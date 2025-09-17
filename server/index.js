@@ -224,6 +224,19 @@ app.post('/api/getlobbies', async (req, res) => {
     }
 });
 
+app.post('/api/addlobby', async (req, res) => {
+    try{
+        lobbies.unshift(new Lobby());
+        res.json({
+            success: true,
+        });
+    }
+    catch (e){
+        res.status(500).json({success: false, error: e.message, errorCode: e.code});
+        return;
+    }
+});
+
 // ВАЖНО
 // Этот обработчик должен идти после всех определений роутов
 if (!isProduction) {
