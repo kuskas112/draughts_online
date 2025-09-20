@@ -285,7 +285,13 @@ app.post('/api/getlobbies', async (req, res) => {
 
 app.post('/api/addlobby', async (req, res) => {
     try{
-        lobbies.unshift(new Lobby());
+        let isAlreadyHost = lobbies.some(lobby => lobby.hostPlayer === req.session.username);
+        if(isAlreadyHost){
+            throw new Error('You are already host');
+        }
+        const newLobby = new Lobby();
+        newLobby.addPlayer(req.session.username);
+        lobbies.unshift(newLobby);
         res.json({
             success: true,
         });

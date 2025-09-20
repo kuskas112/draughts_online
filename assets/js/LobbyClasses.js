@@ -1,13 +1,7 @@
 class Player{
-    constructor(user){
-        this.user = user;
-        this.name = user;
-        this.isHost = false;
-        this.socket = null;
-    }
-
-    setSocket(socket){
-        this.socket = socket;
+    constructor(id, username){
+        this.id = id;
+        this.name = username;
     }
 }
 
@@ -21,28 +15,28 @@ class Pair{
         this.playfield = serializablePlayField;
     }
 
-    addPlayer(username){
+    addPlayer(player){
         if(this.players.length == 2) throw new Error('too much players in pair');
-        if(this.players.includes(username)) throw new Error('already in pair');
-        this.players.push(username);
+        if(this.isIn(player.id)) throw new Error('already in pair');
+        this.players.push(player);
     }
 
-    removePlayer(username){
-        if(!this.isIn(username)) throw new Error('no such player in pair');
+    removePlayer(playerId){
+        if(!this.isIn(playerId)) throw new Error('no such player in pair');
         if(this.players.length == 2){
-            if(this.players[0] == username){
+            if(this.players[0].id == playerId){
                 this.players.shift();
                 return;
             }
-            if(this.players[1] == username){
+            if(this.players[1].id == playerId){
                 this.players.pop();
                 return;
             }
         }
     }
 
-    isIn(username){
-        return this.players.includes(username);
+    isIn(playerId){
+        return this.players.some(inPlayer => inPlayer.id == playerId)
     }
 
     isFull(){
@@ -74,17 +68,23 @@ class Lobby{
         throw new Error('no such player');
     }
 
-    isPlayerIn(username) {
-        return this.players.some(player => player.name === username);
+    isPlayerIn(playerId) {
+        return this.pairs.some(pair => pair.isIn(playerId));
     }
 
-    getPlayersOpponent(username){
-        if (!this.isPlayerIn(username)) throw new Error('no such player');
+    getPlayerById(playerId){
+        let player = this.players.find(player => player.id === playerId)
+        if(player) return player;
+        throw new Error('no such player');
+    }
+
+    getPlayersOpponent(playerId){
+        const player = this.getPlayerById(playerId);
         for (let i = 0; i < this.pairs.length; i++) {
-            if(this.pairs[i].players[0] == username){
+            if(this.pairs[i].players[0] == player.id){
                 return this.pairs[i].players[1];
             }
-            if(this.pairs[i].players[1] == username){
+            if(this.pairs[i].players[1] == player.id){
                 return this.pairs[i].players[0];
             }
         }
@@ -111,20 +111,20 @@ class Lobby{
         return this.pairs.every(pair => pair.isFull());
     }
 
-    addToPair(username){
+    addToPair(player){
         if(this.pairs.length > this.maxPairs) throw new Error('too much pairs');
 
-        // проверка наличия username в парах
-        const isPlayerInPairs = this.pairs.some(pair => pair.isIn(username));
+        // проверка наличия player в парах
+        const isPlayerInPairs = this.pairs.some(pair => pair.isIn(player.id));
         if (isPlayerInPairs) {
             throw new Error('already in pair');
         }
 
         let isPaired = false;
-        // добавление username в пару
+        // добавление player в пару
         this.pairs.forEach(pair => {
             if(!pair.isFull()){
-                pair.addPlayer(username);
+                pair.addPlayer(player);
                 isPaired = true;
                 return;
             }
@@ -133,31 +133,30 @@ class Lobby{
         if (!isPaired) throw new Error('no empty pairs');
     }
 
-    addPlayer(username){
-        if (this.isPlayerIn(username)) throw new Error('already have that player');
+    addPlayer(player){
+        if (this.isPlayerIn(player.id)) throw new Error('already have that player');
         if(this.isFull()) throw new Error('too much players');
 
-        let player = new Player(username);
         if(this.isEmpty()) {
-            this.hostPlayer = username;
+            this.hostPlayer = player.id;
             player.isHost = true;
         }
         this.players.push(player);
         // хост - первый зашедший в лобби
     }
 
-    removePlayer(username) {
-        if (username === undefined) throw new Error('undefined deleted player');
-        if (!this.isPlayerIn(username)) throw new Error('no such player');
-        // Фильтруем массив игроков, исключая игрока с указанным именем
-        this.players = this.players.filter(player => player.name !== username);
+    removePlayer(playerId) {
+        if (playerId === undefined) throw new Error('undefined deleted player');
+        if (!this.isPlayerIn(playerId)) throw new Error('no such player');
+        // Фильтруем массив игроков, исключая игрока с указанным id
+        this.players = this.players.filter(player => player.id !== playerId);
         
         // Игрок не может занимать пару после выхода из лобби
-        this.removeFromPair(username);
+        this.removeFromPair(playerId);
         
         // Если удалили хоста и есть кем его заменить - сделать это
         if (username === this.hostPlayer && !this.isEmpty()) {
-            this.hostPlayer = this.players[0].name;
+            this.hostPlayer = this.players[0].id;
         }
         // Если список игроков опустел - хоста нет
         else if (this.isEmpty()) {
@@ -166,9 +165,9 @@ class Lobby{
         // Иначе - хост в порядке
     }
 
-    removeFromPair(username){
+    removeFromPair(playerId){
         this.pairs.forEach(pair => {
-            if(pair.isIn(username)) pair.removePlayer(username);
+            if(pair.isIn(playerId)) pair.removePlayer(playerId);
         })
     }
 };

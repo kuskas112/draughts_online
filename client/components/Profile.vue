@@ -1,6 +1,6 @@
 <script>
 
-    import { isAuth } from '@js/SessionStatusManager.js';
+    import { isAuth, getUser } from '@js/SessionStatusManager.js';
 
     export default {
         async mounted() {
@@ -8,6 +8,8 @@
             if(!isLoggedIn){
                 this.$router.push('/login');
             }
+
+            console.log(await getUser());
         },
         methods: {
             async logout() {
@@ -26,6 +28,9 @@
 <template>
     <div>
         <button @click="logout" class="logout-button">Logout</button>
+        <a href="/lobbies">
+            <button class="lobbies-button">Lobbies</button>
+        </a>
     </div>
 </template>
 
@@ -42,5 +47,15 @@
 
     .logout-button:hover {
         background-color: #ff1a1a;
+    }
+
+    .lobbies-button{
+        padding: 10px 20px;
+        background-color: #4d4dff;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
     }
 </style>
