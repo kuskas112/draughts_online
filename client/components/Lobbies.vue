@@ -1,5 +1,6 @@
 <script>
     import Lobby from './Lobby.vue';
+    import { getStatus } from '@js/SessionStatusManager.js';
 
     async function getLobbies(){
         let result = await fetch('/api/getlobbies', {
@@ -29,9 +30,13 @@
         mounted(){
             this.getLobbies();
         },
+        async beforeCreate() {
+            this.authStatus = await getStatus();
+        },
         data(){
             return {
                 lobbies: [],
+                authStatus: null,
             }
         },
         methods: {
@@ -49,8 +54,9 @@
     <div style="display: flex; justify-content: center;">
         <div class="lobbies-list">
             <button @click="createLobby" class="create-lobby-button">+ Create Lobby</button>
-            <Lobby v-for="(lobby, index) in this.lobbies" :key="index" 
+            <Lobby v-if="this.authStatus" v-for="(lobby, index) in this.lobbies" :key="index" 
             :lobby = "lobby"
+            :authStatus = "this.authStatus"
             />
         </div>
     </div>

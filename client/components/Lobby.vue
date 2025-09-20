@@ -6,7 +6,11 @@
             lobby: {
                 type: Object,
                 default: null
-            }
+            },
+            authStatus: {
+                type: Object,
+                default: null,
+            },      
         },
         mounted(){
         },
@@ -22,11 +26,11 @@
                 <div class="pair">
                     <div v-for="(player, index) in this.lobby.players" :key="index">
                         <!-- TODO изменить на username -->
-                        {{player.user}}
+                        {{player.name}}
                     </div>
                 </div>
             </div>
-            <div class="lobby-button">
+            <div v-if="this.lobby.players.some(player => player.id !== this.authStatus.user.id)" class="lobby-button">
                 <button>+ Join Lobby</button>
             </div>
         </div>

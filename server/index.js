@@ -1,5 +1,5 @@
 import { SerializablePlayField } from '../SerializablePlayField.js';
-import { Lobby } from '../assets/js/LobbyClasses.js';
+import { Lobby, Player } from '../assets/js/LobbyClasses.js';
 import express from 'express';
 import handlebars from 'express-handlebars';
 import { Server } from 'socket.io';
@@ -264,8 +264,10 @@ app.post('/api/status', (req, res) => {
 
 
 let newLobby = new Lobby();
-newLobby.addPlayer('player1');
-newLobby.addPlayer('player2');
+let newPlayer = new Player(14, 'username1');
+let newPlayer2 = new Player(88, 'username2');
+newLobby.addPlayer(newPlayer);
+newLobby.addPlayer(newPlayer2);
 const lobbies = [
     newLobby,
 ];
@@ -283,14 +285,15 @@ app.post('/api/getlobbies', async (req, res) => {
     }
 });
 
-app.post('/api/addlobby', async (req, res) => {
+app.post('/api/addlobby', requireAuth, async (req, res) => {
     try{
         let isAlreadyHost = lobbies.some(lobby => lobby.hostPlayer === req.session.username);
         if(isAlreadyHost){
             throw new Error('You are already host');
         }
         const newLobby = new Lobby();
-        newLobby.addPlayer(req.session.username);
+        const newPlayer = new Player(req.session.userId, req.session.userName);
+        newLobby.addPlayer(newPlayer);
         lobbies.unshift(newLobby);
         res.json({
             success: true,

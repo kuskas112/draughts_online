@@ -142,6 +142,7 @@ class Lobby{
             player.isHost = true;
         }
         this.players.push(player);
+        this.addToPair(player);
         // хост - первый зашедший в лобби
     }
 
