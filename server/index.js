@@ -6,8 +6,6 @@ import { Server } from 'socket.io';
 import http from 'http';
 import cookieParser from 'cookie-parser';
 import bodyParser from 'body-parser';
-import pkg from 'express/lib/request.js';
-const { param } = pkg;
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import { pathToFileURL } from 'url';
@@ -319,7 +317,7 @@ app.post('/api/addlobby', requireAuth, async (req, res) => {
         const newPlayer = new Player(req.session.userId, req.session.userName);
         newLobby.addPlayer(newPlayer);
         lobbies.unshift(newLobby);
-        io.to(lobbyListenersRoomName).emit('updateLobbies', lobbies);
+        io.to(lobbyListenersRoomName).emit('updateLobbies');
         res.json({
             success: true,
         });
@@ -338,6 +336,7 @@ app.post('/api/joinlobby', async (req, res) => {
         }
         const player = new Player(req.session.userId, req.session.userName);
         lobby.addPlayer(player);
+        io.to(lobbyListenersRoomName).emit('updateLobbies');
         res.json({
             success: true,
         });
@@ -361,42 +360,6 @@ if (!isProduction) {
     // В production используем собранные файлы
     app.use(express.static('dist-public'));
 }
-
-// app.get('/game', (req, res) => {
-//     let params = {
-//         username: req.cookies.username
-//     }
-//     res.render('home', {username: req.cookies.username});
-// });
-
-// app.get('/api/login', (req, res) => {
-//     let params = {
-//         styles: ['login.css']
-//     }
-//     res.render('login', params);
-// });
-
-// app.get('/lobby', (req, res) => {
-//     let params = {
-//         styles: ['lobby.css'],
-//         me: req.cookies.username,
-//     }
-//     res.render('lobby', params);
-// });
-
-
-
-// app.get('/exit', (req, res) => {
-//     try{
-//         lobby.removePlayer(req.cookies.username);
-//     }
-//     catch(e){
-//         console.error(e.message);
-//     }
-//     res.clearCookie('username');
-//     res.redirect('/');
-// });
-
 
 // Проверка, запущен ли файл напрямую (а не импортирован)
 const isMainModule = import.meta.url === pathToFileURL(process.argv[1]).href;
