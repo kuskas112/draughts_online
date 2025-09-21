@@ -1,6 +1,8 @@
 <script>
     import Lobby from './Lobby.vue';
     import { getStatus } from '@js/SessionStatusManager.js';
+    import socketService from '@js/SocketService.js';
+    
 
     async function getLobbies(){
         let result = await fetch('/api/getlobbies', {
@@ -23,15 +25,24 @@
         });
         result = await result.json();
         console.log(result);
-        this.getLobbies();
     }
 
     export default {
         mounted(){
             this.getLobbies();
+            const socket = socketService.connect();
+            socket.on('updateLobbies', () => {
+                console.log('Lobbies updated, fetching new list...');
+                this.getLobbies();
+            });
+            
+            socket.emit('joinToLobbyListeners');
         },
         async beforeCreate() {
             this.authStatus = await getStatus();
+        },
+        beforeUnmount() {
+            socketService.disconnect();
         },
         data(){
             return {

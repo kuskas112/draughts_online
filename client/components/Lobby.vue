@@ -1,5 +1,20 @@
 <script>
 
+    async function joinLobby(){
+        const data = {
+            hostId: this.lobby.hostPlayer,
+        }
+        let result = await fetch('/api/joinlobby', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data),
+        });
+        result = await result.json();
+        console.log(result);
+    }
+
     export default {
         // Явно объявляем props которые ожидаем получить
         props: {
@@ -15,6 +30,7 @@
         mounted(){
         },
         methods: {
+            joinLobby
         }
 
     }
@@ -31,7 +47,7 @@
                 </div>
             </div>
             <div v-if="this.lobby.players.some(player => player.id !== this.authStatus.user.id)" class="lobby-button">
-                <button>+ Join Lobby</button>
+                <button @click="joinLobby">+ Join Lobby</button>
             </div>
         </div>
 </template>

@@ -13,6 +13,7 @@ import { dirname } from 'path';
 import { pathToFileURL } from 'url';
 import path from 'path';
 import { createServer as createViteServer } from 'vite';
+import socketStore from '../assets/js/SocketStore.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -25,10 +26,39 @@ const connections = {};
 const host = 'localhost';
 const port = 3000;
 const lobby = new Lobby();
+const lobbyListenersRoomName = 'listenersRoom';
 
 io.on('connection', (socket) => {
     console.log(`Новое подключение! ${socket.id}`);
+    //TODO: убрать
     connections[socket.id] = socket;
+
+    socket.on('setGamerSocket', (userId) => {
+        try {
+            socketStore.addSocket(userId, socket);
+            console.log(`Socket of a gamer stored for user ${userId}`);
+        } catch (error) {
+            console.log(error);
+        }
+    });
+
+    socket.on('joinToLobbyListeners', () => {
+        try {
+            socket.join(lobbyListenersRoomName);
+            console.log(`Socket ${socket.id} joined to lobby listeners room`);
+        } catch (error) {
+            console.log(error);
+        }
+    });
+
+    socket.on('leaveFromLobbyListeners', () => {
+        try {
+            socket.leave(lobbyListenersRoomName);
+            console.log(`Socket ${socket.id} leaved from lobby listeners room`);
+        } catch (error) {
+            console.log(error);
+        }
+    });
     
     socket.on('move', (moveObj) => {
         console.log(`move from ${moveObj.username} to [${moveObj.xTo}, ${moveObj.yTo}]`);
@@ -133,6 +163,7 @@ io.on('connection', (socket) => {
     })
 
     socket.on('disconnect', () => {
+        socket.leave(lobbyListenersRoomName);
         console.log(`Отключение! ${socket.id}`);
         delete connections[socket.id];
     });
@@ -263,14 +294,7 @@ app.post('/api/status', (req, res) => {
   
 
 
-let newLobby = new Lobby();
-let newPlayer = new Player(14, 'username1');
-let newPlayer2 = new Player(88, 'username2');
-newLobby.addPlayer(newPlayer);
-newLobby.addPlayer(newPlayer2);
-const lobbies = [
-    newLobby,
-];
+const lobbies = [];
 
 app.post('/api/getlobbies', async (req, res) => {
     try{
@@ -287,7 +311,7 @@ app.post('/api/getlobbies', async (req, res) => {
 
 app.post('/api/addlobby', requireAuth, async (req, res) => {
     try{
-        let isAlreadyHost = lobbies.some(lobby => lobby.hostPlayer === req.session.username);
+        let isAlreadyHost = lobbies.some(lobby => lobby.hostPlayer === req.session.userId);
         if(isAlreadyHost){
             throw new Error('You are already host');
         }
@@ -295,6 +319,25 @@ app.post('/api/addlobby', requireAuth, async (req, res) => {
         const newPlayer = new Player(req.session.userId, req.session.userName);
         newLobby.addPlayer(newPlayer);
         lobbies.unshift(newLobby);
+        io.to(lobbyListenersRoomName).emit('updateLobbies', lobbies);
+        res.json({
+            success: true,
+        });
+    }
+    catch (e){
+        res.status(500).json({success: false, error: e.message, errorCode: e.code});
+        return;
+    }
+});
+
+app.post('/api/joinlobby', async (req, res) => {
+    try{
+        const lobby = lobbies.find(lobby => lobby.hostPlayer === req.body.hostId);
+        if(!lobby){
+            throw new Error('Lobby not found');
+        }
+        const player = new Player(req.session.userId, req.session.userName);
+        lobby.addPlayer(player);
         res.json({
             success: true,
         });
