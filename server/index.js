@@ -328,7 +328,7 @@ app.post('/api/addlobby', requireAuth, async (req, res) => {
     }
 });
 
-app.post('/api/joinlobby', async (req, res) => {
+app.post('/api/joinlobby', requireAuth, async (req, res) => {
     try{
         const lobby = lobbies.find(lobby => lobby.hostPlayer === req.body.hostId);
         if(!lobby){
@@ -336,6 +336,11 @@ app.post('/api/joinlobby', async (req, res) => {
         }
         const player = new Player(req.session.userId, req.session.userName);
         lobby.addPlayer(player);
+        if(lobby.isFull()){
+            lobby.players.forEach(pl => {
+                socketStore.getSocket(pl.id).emit('startGame');
+            });  
+        }
         io.to(lobbyListenersRoomName).emit('updateLobbies');
         res.json({
             success: true,
@@ -346,6 +351,20 @@ app.post('/api/joinlobby', async (req, res) => {
         return;
     }
 });
+
+app.post('/api/startgame', async (req, res) => {
+    try{
+
+        res.json({
+            success: true,
+        });
+    }
+    catch (e){
+        res.status(500).json({success: false, error: e.message, errorCode: e.code});
+        return;
+    }
+});
+
 
 // ВАЖНО
 // Этот обработчик должен идти после всех определений роутов

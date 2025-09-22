@@ -29,17 +29,25 @@
 
     export default {
         mounted(){
+        },
+
+        async beforeCreate() {
+            this.authStatus = await getStatus();
+
             this.getLobbies();
             const socket = socketService.connect();
             socket.on('updateLobbies', () => {
                 console.log('Lobbies updated, fetching new list...');
                 this.getLobbies();
             });
+
+            socket.on('startGame', () => {
+                console.log('Starting game');
+                this.$router.push('/game');
+            });
             
             socket.emit('joinToLobbyListeners');
-        },
-        async beforeCreate() {
-            this.authStatus = await getStatus();
+            socket.emit('setGamerSocket', this.authStatus.user.id);
         },
         beforeUnmount() {
             socketService.disconnect();

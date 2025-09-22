@@ -27,12 +27,6 @@
             },      
         },
         mounted(){
-            let isLobbyFull = this.lobby.players.length == this.lobby.maxPairs * 2;
-            let myId = this.authStatus.user.userId;
-            let isMeInLobby = this.lobby.player.some(pl => pl.id == myId);
-            if(isLobbyFull && isMeInLobby){
-                this.$router.push('/game');
-            }
         },
         methods: {
             joinLobby

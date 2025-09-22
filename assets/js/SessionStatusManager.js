@@ -5,7 +5,8 @@ export async function getStatus(){
             'Content-Type': 'application/json',
         },
     });
-    return await result.json();
+    result = await result.json();
+    return result;
 }
 
 export async function isAuth() {
