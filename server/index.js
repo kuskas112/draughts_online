@@ -1,5 +1,6 @@
 import { SerializablePlayField } from '../SerializablePlayField.js';
 import { Lobby, Player } from '../assets/js/LobbyClasses.js';
+import { PlayField } from '../assets/js/GameEngine.js';
 import express from 'express';
 import handlebars from 'express-handlebars';
 import { Server } from 'socket.io';
@@ -301,6 +302,8 @@ app.post('/api/getlobbies', async (req, res) => {
         const arrayToSend = [];
         for (let i = 0; i < lobbies.length; i++) {
             const el = lobbies[i];
+            // ни к чему показывать полные лобби
+            if(el.isFull()) continue;
             const pairs = [];
             for (let i = 0; i < el.pairs.length; i++) {
                 const pair = el.pairs[i];
@@ -357,6 +360,13 @@ app.post('/api/joinlobby', requireAuth, async (req, res) => {
         const player = new Player(req.session.userId, req.session.userName);
         lobby.addPlayer(player);
         if(lobby.isFull()){
+
+            for (let i = 0; i < lobby.pairs.length; i++) {
+                const pf = new PlayField();
+                pf.initGameField();
+                lobby.pairs[i].playfield = pf;
+            }
+
             lobby.players.forEach(pl => {
                 socketStore.getSocket(pl.id).emit('startGame');
             });  
@@ -372,12 +382,17 @@ app.post('/api/joinlobby', requireAuth, async (req, res) => {
     }
 });
 
-app.post('/api/initgame', requireAuth, async (req, res) => {
+app.post('/api/getplayfield', requireAuth, async (req, res) => {
     try{
-
-
+        const userId = req.session.userId;
+        const lobby = lobbies.find(lb => lb.isPlayerIn(userId));
+        if(!lobby) throw new Error('No such lobby');
+        const pair = lobby.pairs.find(pair => pair.isIn(userId));
+        if(!pair) throw new Error('No such pair');
+        const pf = pair.playfield;
         res.json({
             success: true,
+            playfield: pf,
         });
     }
     catch (e){

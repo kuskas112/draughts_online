@@ -1,6 +1,19 @@
 <script>
+    async function getGameField(){
+        let result = await fetch('/api/getplayfield', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+        result = await result.json();
+        console.log('Game Field:');
+        console.log(result);
+    }
+
     export default {
         mounted(){
+            getGameField();
         },
         data(){
             return {
