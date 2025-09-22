@@ -22,6 +22,19 @@
                 td.classList.add('cell');
                 td.classList.add(color);
 
+                const pfElement = this.pf.cells[i][j];
+                if(pfElement){
+                    const checker = document.createElement('div');
+                    checker.classList.add('checker');
+                    const colors = {
+                        'w': 'white',
+                        'b': 'black',
+                    };
+                    console.log(pfElement);
+                    checker.style.backgroundColor = colors[pfElement.color];
+                    td.appendChild(checker);
+                }
+
                 row.appendChild(td);
                 this.cells[i][j] = td;
             }
@@ -30,12 +43,10 @@
     }
 
     export default {
-        mounted(){
+        async mounted(){
+            this.pf = await getGameField();
             this.drawGameField();
             console.log(this.cells);
-        },
-        async beforeCreate(){
-            this.pf = await getGameField();
         },
         data(){
             return {
@@ -78,6 +89,13 @@
         font-weight: bold;
     }
     
+    .checker{
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background-color: red;
+    }
+
     .white {
         background-color: #f0d9b5;
     }
