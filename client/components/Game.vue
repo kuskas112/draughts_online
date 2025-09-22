@@ -7,20 +7,44 @@
             },
         });
         result = await result.json();
-        console.log('Game Field:');
-        console.log(result);
+        return result.playfield;
+    }
+
+    function drawGameField(){
+        const tbody = document.getElementById('table-body');
+        tbody.innerHTML = '';
+        for(var i = 0; i < 8; i++){
+            const row = document.createElement('tr');
+            for(var j = 0; j < 8; j++){
+                var td = document.createElement('td');
+                let color = (i + j) % 2 == 0 ? 'white' : 'black'; 
+                // описание поля с шашкой или без
+                td.classList.add('cell');
+                td.classList.add(color);
+
+                row.appendChild(td);
+                this.cells[i][j] = td;
+            }
+            tbody.appendChild(row);
+        }
     }
 
     export default {
         mounted(){
-            getGameField();
+            this.drawGameField();
+            console.log(this.cells);
+        },
+        async beforeCreate(){
+            this.pf = await getGameField();
         },
         data(){
             return {
-                cells: [],
+                pf: null,    
+                cells: new Array(8).fill(null).map(() => new Array(8).fill(null)),   
             }
         },
         methods: {
+            drawGameField,
         }
 
     }
@@ -29,12 +53,12 @@
 <template>
     <div>
         <table class="game-grid" id="game-grid">
-
+            <tbody id='table-body'></tbody>
         </table>
     </div>
 </template>
 
-<style scoped>
+<style>
     .game-grid{
         position: relative;
     }
