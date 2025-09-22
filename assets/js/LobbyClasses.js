@@ -62,12 +62,6 @@ class Lobby{
         throw new Error('no such player');
     }
 
-    getPlayerBySocket(socket){
-        let player = this.players.find(player => player.socket === socket)
-        if(player) return player;
-        throw new Error('no such player');
-    }
-
     isPlayerIn(playerId) {
         return this.pairs.some(pair => pair.isIn(playerId));
     }

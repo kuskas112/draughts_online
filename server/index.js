@@ -296,9 +296,29 @@ const lobbies = [];
 
 app.post('/api/getlobbies', async (req, res) => {
     try{
+        // Переупаковка объектов, чтобы не ложить в них серверную информацию
+        // из Lobby classes (например playfield из Pair)
+        const arrayToSend = [];
+        for (let i = 0; i < lobbies.length; i++) {
+            const el = lobbies[i];
+            const pairs = [];
+            for (let i = 0; i < el.pairs.length; i++) {
+                const pair = el.pairs[i];
+                pairs.push({
+                    players: pair.players,
+                });
+            }
+            const objToSend = {
+                hostPlayer: el.hostPlayer,
+                players: el.players,
+                maxPairs: el.maxPairs,
+                pairs: pairs,
+            };
+            arrayToSend.push(objToSend);
+        }
         res.json({
             success: true,
-            lobbies: lobbies,
+            lobbies: arrayToSend,
         });
     }
     catch (e){
@@ -352,8 +372,9 @@ app.post('/api/joinlobby', requireAuth, async (req, res) => {
     }
 });
 
-app.post('/api/startgame', async (req, res) => {
+app.post('/api/initgame', requireAuth, async (req, res) => {
     try{
+
 
         res.json({
             success: true,
