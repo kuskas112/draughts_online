@@ -389,10 +389,14 @@ app.post('/api/getplayfield', requireAuth, async (req, res) => {
         if(!lobby) throw new Error('No such lobby');
         const pair = lobby.pairs.find(pair => pair.isIn(userId));
         if(!pair) throw new Error('No such pair');
-        const pf = pair.playfield;
+        const pf = structuredClone(pair.playfield);
+        // Каким цветом игрок ходит
+        const checkerColor = pair.players[0].id === userId ? 'white' : 'black';
+
         res.json({
             success: true,
             playfield: pf,
+            checkerColor: checkerColor,
         });
     }
     catch (e){

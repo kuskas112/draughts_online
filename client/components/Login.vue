@@ -76,13 +76,13 @@
             <label for="username">Вход в аккаунт</label> <br>
             <input v-model="username" type="text" name="username" id="username" placeholder="Имя...">
             <input v-model="password" type="text" name="password" id="password" placeholder="Пароль...">
-            <input @click="sendForm" type="submit" value="Отправить">
+            <input @click="sendForm" @keydown.enter="sendForm" type="submit" value="Отправить">
         </div>
         <div v-else-if="currentSelectedButton === 'signup'" class="form">
             <label for="username">Регистрация</label> <br>
             <input v-model="username" type="text" name="username" id="username" placeholder="Имя...">
             <input v-model="password" type="text" name="password" id="password" placeholder="Пароль...">
-            <input @click="sendForm" type="submit" value="Отправить">
+            <input @click="sendForm" @keydown.enter="sendForm" type="submit" value="Отправить">
         </div>
     </div>
 </template>

@@ -1,4 +1,17 @@
 <script>
+    function coordTrans(x, y) {
+        if(this.checkerColor == 'black'){
+            return {
+                x: 7 - x,
+                y: 7 - y,
+            };
+        }
+        return {
+            x: x,
+            y: y,
+        };
+    }
+
     async function getGameField(){
         let result = await fetch('/api/getplayfield', {
             method: 'POST',
@@ -7,7 +20,9 @@
             },
         });
         result = await result.json();
-        return result.playfield;
+        this.pf = result.playfield;
+        this.checkerColor = result.checkerColor;
+        console.log(this.checkerColor);
     }
 
     function drawGameField(){
@@ -22,7 +37,8 @@
                 td.classList.add('cell');
                 td.classList.add(color);
 
-                const pfElement = this.pf.cells[i][j];
+                const {x, y} = this.coordTrans(i, j);
+                const pfElement = this.pf.cells[x][y];
                 if(pfElement){
                     const checker = document.createElement('div');
                     checker.classList.add('checker');
@@ -30,8 +46,10 @@
                         'w': 'white',
                         'b': 'black',
                     };
-                    console.log(pfElement);
                     checker.style.backgroundColor = colors[pfElement.color];
+                    checker.addEventListener('click', () => {
+                        console.log(pfElement)
+                    })
                     td.appendChild(checker);
                 }
 
@@ -44,18 +62,20 @@
 
     export default {
         async mounted(){
-            this.pf = await getGameField();
+            await this.getGameField();
             this.drawGameField();
-            console.log(this.cells);
         },
         data(){
             return {
                 pf: null,    
+                checkerColor: null,
                 cells: new Array(8).fill(null).map(() => new Array(8).fill(null)),   
             }
         },
         methods: {
+            getGameField,
             drawGameField,
+            coordTrans
         }
 
     }
